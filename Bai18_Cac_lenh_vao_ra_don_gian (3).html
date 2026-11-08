@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bài 18: Các lệnh vào ra đơn giản</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<script>try{var t=localStorage.getItem("b18:theme");if(t)document.documentElement.setAttribute("data-theme",JSON.parse(t));}catch(e){}</script>
+<style>
+/* ================= GIAO DIỆN MỚI ================= */
+:root{
+  --bg:#f5f3ff; --bg2:#eef7ff; --card:#ffffff; --card2:#f8f7ff; --ink:#1b1740; --muted:#625e86; --line:#e7e3fb;
+  --pri:#6d4aff; --pri2:#ff5c8a; --pri-d:#4b2fd6; --pri-l:#efeaff;
+  --mint:#14c38e; --sun:#ffc23d; --sun-l:#fff6dd; --sky:#2fa8ff;
+  --ok:#12a170; --ok-l:#e2f8ef; --bad:#e5484d; --bad-l:#ffe9ea; --warn-l:#fff4df; --warn:#f59e0b;
+  --code-bg:#17142e; --code-bg2:#211d40; --code-ink:#ece9ff; --con-bg:#0f0d22;
+  --t-int:#2f80ff; --t-float:#9b5cff; --t-str:#ff7a2f; --t-bool:#12a170;
+  --chip-bg:#ffffff; --input-bg:#ffffff; --codei:#efeaff; --codei-ink:#4b2fd6;
+  --r:22px; --shadow:0 10px 30px -12px rgba(76,52,190,.18),0 2px 6px rgba(76,52,190,.06);
+  --head:64px; --grad:linear-gradient(120deg,#6d4aff 0%,#a64bff 45%,#ff5c8a 100%);
+}
+:root[data-theme="dark"]{
+  --bg:#110e24; --bg2:#0d1426; --card:#1b1735; --card2:#221d42; --ink:#ecebff; --muted:#a9a4cf; --line:#2f2954;
+  --pri:#8f74ff; --pri-d:#b4a3ff; --pri-l:#2a2350; --sun-l:#2f2715; --ok-l:#123528; --bad-l:#3a1a22; --warn-l:#33270f;
+  --code-bg:#0f0c22; --code-bg2:#18143a; --con-bg:#080616; --chip-bg:#221d42; --input-bg:#15122c; --codei:#2a2350; --codei-ink:#c9bdff;
+  --shadow:0 10px 30px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--head) + 90px)}
+body{margin:0;color:var(--ink);font:16px/1.65 "Be Vietnam Pro","Segoe UI",Roboto,Arial,sans-serif;
+  background:radial-gradient(1200px 600px at 100% -10%,rgba(255,92,138,.12),transparent 60%),radial-gradient(900px 500px at -10% 20%,rgba(109,74,255,.12),transparent 60%),linear-gradient(180deg,var(--bg),var(--bg2));background-attachment:fixed;min-height:100vh}
+code,pre,.mono{font-family:"JetBrains Mono",Consolas,"Courier New",monospace}
+code{background:var(--codei);border-radius:7px;padding:1px 6px;font-size:.88em;color:var(--codei-ink);font-weight:500}
+code.big{font-size:1.05em;padding:5px 12px;display:inline-block}
+a{color:var(--pri)}
+h1,h2,h3{line-height:1.3;letter-spacing:-.01em}
+h2{margin:0 0 .7em;font-size:1.55rem;font-weight:800}
+h3{margin:1.4em 0 .5em;font-size:1.1rem;font-weight:700}
+::selection{background:#d9ccff}
+
+/* header */
+header.top{position:fixed;inset:12px 16px auto 16px;height:var(--head);border-radius:20px;display:flex;align-items:center;gap:14px;padding:0 14px 0 12px;z-index:50;
+  background:color-mix(in srgb,var(--card) 78%,transparent);backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4);border:1px solid var(--line);box-shadow:var(--shadow)}
+.menu-btn{display:none;background:var(--pri-l);border:0;color:var(--pri);font-size:20px;width:42px;height:42px;border-radius:12px;cursor:pointer}
+.brand{font-weight:800;font-size:1.02rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:10px}
+.brand .logo{width:40px;height:40px;border-radius:12px;background:var(--grad);display:grid;place-items:center;font-size:1.25rem;flex:none;box-shadow:0 6px 14px -4px rgba(109,74,255,.5)}
+.brand small{display:block;font-weight:600;font-size:.74rem;color:var(--muted);line-height:1.1}
+.progress-wrap{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:.88rem;font-weight:700}
+.progress{width:160px;height:10px;border-radius:99px;background:var(--pri-l);overflow:hidden}
+.progress>div{height:100%;width:0;background:var(--grad);border-radius:99px;transition:width .5s cubic-bezier(.3,1.4,.5,1)}
+#progressText{color:var(--pri);min-width:38px}
+.py-status{font-size:.78rem;font-weight:600;background:var(--pri-l);color:var(--muted);padding:5px 11px;border-radius:99px;white-space:nowrap}
+.py-status.ready{background:var(--ok-l);color:var(--ok)}
+.theme-btn{border:0;background:var(--pri-l);color:var(--ink);width:40px;height:40px;border-radius:12px;font-size:1.05rem;cursor:pointer;flex:none}
+
+.side-foot{margin:14px 8px 0;padding-top:12px;border-top:1px dashed var(--line);font-size:.78rem;color:var(--muted)}
+
+main{margin-left:288px;padding:calc(var(--head) + 30px) 28px 40px 0;max-width:1060px}
+footer{margin-left:288px;padding:10px 28px 36px 0;color:var(--muted);font-size:.85rem}
+
+/* cover banner */
+.cover{position:relative;overflow:hidden;border-radius:28px;padding:34px 34px 30px;margin-bottom:24px;color:#fff;background:var(--grad);box-shadow:0 20px 40px -18px rgba(109,74,255,.6)}
+.cover::before,.cover::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.12)}
+.cover::before{width:320px;height:320px;right:-80px;top:-120px}
+.cover::after{width:200px;height:200px;right:140px;bottom:-110px}
+.cover .kicker{display:inline-block;background:rgba(255,255,255,.2);padding:4px 12px;border-radius:99px;font-size:.8rem;font-weight:700;letter-spacing:.04em}
+.cover h1{font-size:2.3rem;margin:.35em 0 .2em;font-weight:900;max-width:640px}
+.cover p{margin:0;max-width:600px;opacity:.95}
+.cover .pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;position:relative;z-index:1}
+.cover .pills span{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:14px;padding:7px 13px;font-size:.88rem;font-weight:600}
+.cover .cta{display:inline-block;margin-top:20px;background:#fff;color:var(--pri-d);padding:11px 22px;border-radius:14px;font-weight:800;text-decoration:none;position:relative;z-index:1;box-shadow:0 8px 20px -8px rgba(0,0,0,.35)}
+.cover .snake{position:absolute;right:34px;bottom:26px;font:700 13px "JetBrains Mono",monospace;background:rgba(15,13,34,.55);border-radius:16px;padding:14px 18px;line-height:1.7;z-index:1}
+.cover .snake b{color:#ffd76a;font-weight:700}.cover .snake i{color:#8ff0c8;font-style:normal}
+
+/* cards */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:30px 32px;margin-bottom:24px;border:1px solid var(--line)}
+.card>h2{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.card>h2 .num{flex:none;width:44px;height:44px;border-radius:14px;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:1.2rem;box-shadow:0 8px 16px -8px rgba(109,74,255,.7)}
+.card>h2 code{font-size:.85em}
+.hero{background:linear-gradient(135deg,var(--card) 50%,var(--card2))}
+.hero h1{margin:0 0 .4em;font-size:1.6rem;color:var(--pri-d)}
+.info-card .info-row{display:flex;gap:14px;flex-wrap:wrap}
+.info-card label{display:flex;flex-direction:column;font-weight:700;font-size:.88rem;gap:6px;flex:1;min-width:180px}
+input[type=text],.info-card input{font:inherit;padding:11px 14px;border:2px solid var(--line);border-radius:14px;outline:none;background:var(--input-bg);color:var(--ink);transition:border-color .15s,box-shadow .15s}
+input[type=text]:focus,.info-card input:focus{border-color:var(--pri);box-shadow:0 0 0 4px var(--pri-l)}
+.cap{color:var(--muted);font-size:.9rem;margin:.2em 0 .8em}
+.hint{background:var(--sun-l);border-radius:16px;padding:12px 16px;font-size:.93rem}
+.goal-list{margin:.4em 0 0;padding-left:1.2em}
+.goal-list li::marker{color:var(--pri)}
+.road{display:grid;gap:10px;margin:.7em 0;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.road>div{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:12px 14px;font-size:.93rem;transition:transform .15s}
+.road>div:hover{transform:translateY(-2px)}
+.road b{flex:none;width:32px;height:32px;border-radius:11px;display:grid;place-items:center;background:var(--grad);color:#fff;font-size:.9rem}
+.steps-learn{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:.5em 0 1em}
+.steps-learn>div{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column}
+.steps-learn span{font-size:.85rem;color:var(--muted)}
+
+/* boxes */
+.act{border-radius:18px;margin:1.2em 0;overflow:hidden;border:1px solid #ffd98a;background:var(--sun-l)}
+.act-h{display:inline-block;background:linear-gradient(90deg,#ff9f1c,#ffc23d);color:#3a2300;font-weight:800;padding:6px 16px;font-size:.88rem;border-bottom-right-radius:14px}
+.act-b{padding:10px 18px 14px}
+.act-b p{margin:.3em 0}
+.note{background:var(--pri-l);border-radius:16px;padding:12px 16px 12px 18px;margin:1em 0;position:relative;border-left:5px solid var(--pri)}
+.note.warn{background:var(--warn-l);border-left-color:var(--warn)}
+.note.good{background:var(--ok-l);border-left-color:var(--ok)}
+.keybox{border-radius:18px;padding:14px 18px;margin:1.2em 0;background:linear-gradient(135deg,var(--sun-l),var(--pri-l));border:1px solid var(--line)}
+.keybox ul{margin:.2em 0;padding-left:1.2em}
+.keybox::before{content:"📌 Ghi nhớ";display:block;font-weight:800;color:var(--pri-d);margin-bottom:4px}
+
+.flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:1.1em 0}
+.flow-box{padding:11px 16px;border-radius:14px;font-family:"JetBrains Mono",monospace;font-size:.93rem;font-weight:600}
+.flow-box.code{background:var(--code-bg);color:#ffd76a}
+.flow-box.screen{background:#0b1f17;color:#7dffc4}
+.flow-box.user{background:var(--sun-l);border:2px solid #ffc23d;color:#7a5200}
+.flow-box.mem{background:var(--card);border:2px dashed var(--pri);color:var(--pri-d)}
+.flow-arrow{color:var(--muted);font-size:.9rem}
+
+.table-wrap{overflow-x:auto;margin:.9em 0;border-radius:16px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:.93rem}
+th,td{border-bottom:1px solid var(--line);padding:10px 14px;text-align:left;vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{background:var(--card2);font-weight:700;color:var(--muted);font-size:.85rem;text-transform:uppercase;letter-spacing:.03em}
+td+td,th+th{border-left:1px solid var(--line)}
+
+.tt{display:inline-block;font:700 .76rem "JetBrains Mono",monospace;padding:2px 9px;border-radius:99px;color:#fff;vertical-align:middle}
+.tt.int{background:var(--t-int)}.tt.float{background:var(--t-float)}.tt.str{background:var(--t-str)}.tt.bool{background:var(--t-bool)}
+
+/* code blocks */
+.shell,pre.py{position:relative;background:var(--code-bg);color:var(--code-ink);border-radius:18px;margin:.9em 0;font:14px/1.7 "JetBrains Mono",Consolas,monospace;overflow-x:auto}
+.shell{padding:38px 18px 14px}
+.shell::before{content:"";position:absolute;left:16px;top:14px;width:11px;height:11px;border-radius:50%;background:#ff5f57;box-shadow:18px 0 #febc2e,36px 0 #28c840}
+.shell::after{content:"Python Shell";position:absolute;right:16px;top:9px;font:600 .72rem "Be Vietnam Pro",sans-serif;color:#8a84b8}
+pre.py{padding:14px 18px}
+.shell .r{white-space:pre;display:flex;gap:16px;align-items:baseline}
+.shell .p{color:#8a84b8}.shell .o{color:#cfe0ff}.shell .e{color:#ff8a92}
+.shell .ann{font-family:"Be Vietnam Pro",sans-serif;font-size:.78rem;color:#ffd76a;white-space:normal;background:rgba(255,215,106,.1);padding:0 8px;border-radius:6px}
+.shell .ann::before{content:"← "}
+.cm-s-b18 .cm-keyword,.py .cm-keyword{color:#ff7ac6}
+.cm-s-b18 .cm-builtin,.py .cm-builtin{color:#6fe3ff}
+.cm-s-b18 .cm-string,.py .cm-string{color:#ffe17a}
+.cm-s-b18 .cm-number,.py .cm-number{color:#c49bff}
+.cm-s-b18 .cm-comment,.py .cm-comment{color:#7a74a8;font-style:italic}
+.cm-s-b18 .cm-operator,.py .cm-operator{color:#ff9e64}
+.cm-s-b18 .cm-variable,.py .cm-variable{color:#ece9ff}
+.cm-s-b18 .cm-def,.py .cm-def{color:#5ff0a8}
+.CodeMirror.cm-s-b18{background:var(--code-bg);color:var(--code-ink);height:auto;min-height:96px;font:14.5px/1.7 "JetBrains Mono",Consolas,monospace;padding:8px 0}
+.cm-s-b18 .CodeMirror-gutters{background:var(--code-bg);border-right:0}
+.cm-s-b18 .CodeMirror-linenumber{color:#4f4880}
+.cm-s-b18 .CodeMirror-cursor{border-left:2px solid #ffc23d}
+.cm-s-b18 .CodeMirror-selected{background:#3a3270 !important}
+.cm-s-b18 .CodeMirror-activeline-background{background:#211d40}
+.cm-s-b18 .CodeMirror-matchingbracket{color:#5ff0a8 !important;text-decoration:underline}
+.CodeMirror-scroll{min-height:96px}
+textarea.plain-editor{width:100%;min-height:120px;background:var(--code-bg);color:var(--code-ink);border:0;padding:14px;font:14.5px/1.7 "JetBrains Mono",Consolas,monospace;resize:vertical}
+
+/* editor + console */
+.demo,.ex-body{position:relative;margin:.9em 0;border-radius:20px;overflow:hidden;background:var(--code-bg);box-shadow:0 14px 30px -18px rgba(23,20,46,.8)}
+.demo::before,.ex-body::before{content:"main.py";display:block;padding:9px 16px 9px 70px;font:600 .75rem "JetBrains Mono",monospace;color:#8a84b8;background:var(--code-bg2);position:relative}
+.demo::after,.ex-body::after{content:"";position:absolute;left:16px;top:13px;width:10px;height:10px;border-radius:50%;background:#ff5f57;box-shadow:16px 0 #febc2e,32px 0 #28c840}
+.demo-bar{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;background:var(--code-bg2)}
+.console{background:var(--con-bg);color:#c9ffe3;font:14px/1.6 "JetBrains Mono",Consolas,monospace;padding:12px 16px;min-height:50px;white-space:pre-wrap;word-break:break-word;max-height:340px;overflow:auto;border-top:1px solid #2a2550}
+.console:empty::before{content:"▸ Kết quả sẽ hiện ở đây";color:#57518a;font-family:"Be Vietnam Pro",sans-serif}
+.console .err{color:#ff8a92}.console .sys{color:#8a84b8;font-style:italic}.console .usr{color:#ffd76a}
+.console .vn{display:block;margin-top:8px;padding:10px 12px;background:#2c1830;border-radius:12px;color:#ffd3dc;font-family:"Be Vietnam Pro",sans-serif;font-size:.88rem;white-space:normal}
+.console input.cin{background:#221d45;color:#ffd76a;border:2px solid #ffc23d;border-radius:8px;font:inherit;padding:2px 8px;outline:none;min-width:120px;width:40%;animation:glow 1.4s infinite}
+@keyframes glow{50%{box-shadow:0 0 0 4px rgba(255,194,61,.25)}}
+.console .wait-tip{color:#ffd76a;font-family:"Be Vietnam Pro",sans-serif;font-size:.8rem;margin-left:8px}
+
+/* buttons */
+.btn{font:700 .9rem "Be Vietnam Pro","Segoe UI",sans-serif;border:0;border-radius:12px;padding:9px 16px;cursor:pointer;background:var(--pri);color:#fff;transition:transform .12s,filter .15s,box-shadow .15s}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.run{background:linear-gradient(135deg,#14c38e,#0ea371);box-shadow:0 6px 14px -6px rgba(20,195,142,.7)}
+.btn.check{background:linear-gradient(135deg,#ffc23d,#ff9f1c);color:#3a2300;box-shadow:0 6px 14px -6px rgba(255,159,28,.7)}
+.btn.stop{background:var(--bad)}
+.btn.ghost{background:transparent;color:#bdb6ea;border:1.5px solid #3e3770}
+.card .btn.ghost.light,.btn.ghost.light{color:var(--pri);border:1.5px solid var(--line);background:var(--card)}
+.btn.small{padding:6px 12px;font-size:.8rem;border-radius:10px}
+.btn.big{font-size:1rem;padding:12px 22px;border-radius:14px;background:var(--grad);box-shadow:0 10px 20px -10px rgba(109,74,255,.8)}
+
+/* practice */
+.practice{margin-top:1.8em;padding-top:1.2em;border-top:2px dashed var(--line)}
+.practice-title{display:inline-flex;align-items:center;gap:6px;font-weight:800;color:#fff;background:linear-gradient(90deg,#ff9f1c,#ff5c8a);padding:6px 16px;border-radius:99px;font-size:.92rem;margin-bottom:.4em}
+.ex{border:1px solid var(--line);border-radius:22px;padding:20px 22px;margin:1em 0;background:var(--card2);position:relative}
+.ex.passed{border-color:#9be3c6;background:linear-gradient(135deg,var(--ok-l),var(--card2) 60%)}
+.ex h3{margin:0 0 .4em;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{font-size:.72rem;font-weight:800;padding:3px 11px;border-radius:99px;background:var(--pri-l);color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.badge.ok{background:var(--ok);color:#fff}
+.ex-goal{margin:.3em 0}
+.ex-steps{margin:.3em 0 .7em;padding-left:1.3em}
+.ex-steps li::marker{color:var(--pri);font-weight:800}
+.ex-sample{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:.6em 0}
+.ex-sample>div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 14px;font-size:.88rem}
+.ex-sample pre{margin:.3em 0 0;background:var(--con-bg);color:#c9ffe3;border-radius:10px;padding:8px 12px;font-size:13.5px;white-space:pre-wrap}
+details.ex-hint{margin:.5em 0;font-size:.93rem}
+details.ex-hint summary{cursor:pointer;color:var(--pri);font-weight:700;list-style:none;display:inline-flex;align-items:center;gap:6px;background:var(--pri-l);padding:5px 12px;border-radius:99px}
+details.ex-hint summary::before{content:"💡"}
+details.ex-hint summary::-webkit-details-marker{display:none}
+.ex-res{margin-top:.6em}
+.res-table{width:100%;min-width:0;font-size:.86rem}
+.res-table td,.res-table th{padding:7px 10px}
+.res-table pre{margin:0;white-space:pre-wrap;font-size:13px}
+.result{border-radius:14px;padding:11px 16px;margin:.5em 0;font-weight:700}
+.result.ok{background:var(--ok-l);color:var(--ok)}
+.result.bad{background:var(--bad-l);color:var(--bad)}
+.result.neutral{background:var(--pri-l);color:var(--muted)}
+
+/* quiz */
+.quiz{border:1px solid var(--line);background:var(--card2);border-radius:22px;padding:18px 22px;margin:1.2em 0}
+.quiz.passed{border-color:#9be3c6;background:linear-gradient(135deg,var(--ok-l),var(--card2) 60%)}
+.quiz-h{font-weight:800;color:var(--pri-d);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.quiz-q{margin:.4em 0 .7em}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 14px;cursor:pointer;transition:border-color .15s,transform .12s}
+.opt:hover{border-color:var(--pri);transform:translateX(2px)}
+.opt input{margin-top:5px;accent-color:var(--pri)}
+.opt.right{border-color:var(--ok);background:var(--ok-l)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-l)}
+.qrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 0;border-bottom:1px dashed var(--line)}
+.qrow:last-child{border-bottom:0}
+.qrow .lab{min-width:170px}
+.qrow select{font:inherit;padding:6px 10px;border-radius:10px;border:2px solid var(--line);background:var(--input-bg);color:var(--ink)}
+.qrow select.right{border-color:var(--ok);background:var(--ok-l)}
+.qrow select.wrong{border-color:var(--bad);background:var(--bad-l)}
+.quiz-foot{display:flex;gap:10px;align-items:center;margin-top:.8em;flex-wrap:wrap;font-weight:600}
+.quiz-exp{margin-top:.7em;font-size:.93rem;background:var(--card);border-radius:14px;padding:10px 14px;border:1px solid var(--line)}
+
+/* tracer */
+.viz{border:1px solid var(--line);border-radius:22px;overflow:hidden;margin:1em 0;background:var(--card)}
+.trace-body{display:flex;flex-wrap:wrap}
+.trace-code{flex:1 1 300px;margin:0;background:var(--code-bg);color:var(--code-ink);padding:14px 0;font:14px/1.85 "JetBrains Mono",monospace}
+.trace-code .ln{display:block;padding:0 14px 0 10px;border-left:4px solid transparent;transition:background .2s}
+.trace-code .ln::before{content:attr(data-n);display:inline-block;width:24px;color:#4f4880}
+.trace-code .ln.cur{background:#352d6e;border-left-color:#ffc23d}
+.trace-code .ln.ran{opacity:.6}
+.mem{flex:1 1 280px;padding:14px 18px;background:var(--card2)}
+.mem-title{font-weight:800;margin-bottom:10px}
+.mem-box{display:flex;flex-wrap:wrap;gap:12px;min-height:84px;align-content:flex-start}
+.var-box{border:2px solid var(--line);border-radius:16px;background:var(--card);min-width:100px;text-align:center;overflow:hidden}
+.var-box .tag{background:var(--pri-l);font:700 .82rem "JetBrains Mono",monospace;padding:4px 10px;color:var(--pri-d)}
+.var-box .val{font:700 1.05rem "JetBrains Mono",monospace;padding:7px 10px}
+.var-box .ty{padding:0 0 8px}
+.var-box.new{border-color:#ffc23d;box-shadow:0 0 0 4px rgba(255,194,61,.25);animation:pop .4s cubic-bezier(.3,1.5,.5,1)}
+@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.trace-msg{padding:12px 18px;background:var(--sun-l);font-size:.93rem;min-height:46px}
+.trace-btns{display:flex;gap:8px;padding:12px 18px}
+
+/* shell widget */
+.pyshell{border-radius:20px;overflow:hidden;margin:1em 0;box-shadow:0 14px 30px -18px rgba(23,20,46,.8)}
+.pyshell-out{background:var(--con-bg);color:#c9ffe3;font:14px/1.65 "JetBrains Mono",monospace;padding:12px 16px;min-height:130px;max-height:320px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.pyshell-out .p{color:#8a84b8}.pyshell-out .err{color:#ff8a92}
+.pyshell-out .vn{display:block;margin:4px 0 8px;color:#ffd3dc;font-family:"Be Vietnam Pro",sans-serif;font-size:.86rem;white-space:normal;background:#2c1830;padding:8px 12px;border-radius:10px}
+.pyshell-in{display:flex;align-items:center;background:var(--code-bg2);padding:8px 14px;gap:8px}
+.pyshell-in span{color:#ffc23d;font:700 15px "JetBrains Mono",monospace}
+.pyshell-in input{flex:1;background:transparent;border:0;outline:none;color:#ffe17a;font:15px "JetBrains Mono",monospace;padding:6px 0;min-width:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:.7em 0}
+.chip{font:600 .82rem "JetBrains Mono",monospace;border:1.5px solid var(--line);background:var(--chip-bg);color:var(--pri-d);border-radius:99px;padding:5px 13px;cursor:pointer;transition:all .15s}
+.chip:hover{background:var(--pri);color:#fff;border-color:var(--pri);transform:translateY(-1px)}
+
+/* game */
+.game{border-radius:24px;padding:22px;text-align:center;margin:1em 0;background:linear-gradient(135deg,var(--pri-l),var(--sun-l));border:1px solid var(--line)}
+.game-val{font:800 2.3rem "JetBrains Mono",monospace;margin:.3em auto;color:var(--ink);min-height:1.4em;background:var(--card);border-radius:18px;padding:10px 20px;display:inline-block;min-width:200px;box-shadow:var(--shadow)}
+.game-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.game-btns .btn{min-width:96px;font-family:"JetBrains Mono",monospace}
+.game-msg{min-height:1.6em;margin:.6em 0;font-weight:700}
+.game-score{color:var(--muted);font-size:.88rem;font-weight:600}
+
+/* story */
+.story{border-radius:22px;overflow:hidden;border:1px solid var(--line);background:var(--card);outline:none}
+.story:focus-visible{box-shadow:0 0 0 4px var(--pri-l)}
+.story-tools{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:var(--card2);font-size:.8rem;color:var(--muted)}
+.story-stage svg{display:block;width:100%;height:auto;background:#e8ecf9}
+.story-cap{padding:16px 22px 4px}
+.story-meta{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);font-weight:600}
+.story-tag{background:var(--grad);color:#fff;font-weight:800;border-radius:99px;padding:2px 12px}
+.story-title{font-weight:900;font-size:1.25rem;margin:.35em 0 .2em;color:var(--pri-d)}
+.story-text{margin:.2em 0 .6em}
+.story-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 18px 18px}
+.story-nav .btn.ghost{color:var(--pri);border-color:var(--line);background:var(--card)}
+.story-dots{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+.story-dots button{width:10px;height:10px;border-radius:99px;border:0;background:var(--line);cursor:pointer;padding:0;transition:width .25s}
+.story-dots button.on{background:var(--pri);width:26px}
+.story:fullscreen{overflow:auto;display:flex;flex-direction:column;justify-content:center}
+.story:fullscreen .story-stage svg{max-height:68vh}
+
+/* summary */
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:.9em 0}
+.stat{border-radius:18px;padding:14px 18px;font-size:.88rem;color:var(--muted);font-weight:600;background:var(--card2);border:1px solid var(--line)}
+.stat b{display:block;font-size:1.9rem;font-weight:900;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sum-list{columns:2 260px;padding-left:1.2em;font-size:.92rem}
+.sum-list li.ok{color:var(--ok)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin:.9em 0}
+.analogy{display:flex;gap:14px;flex-wrap:wrap;margin:1em 0}
+
+/* hiện dần khi cuộn */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s,transform .6s}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+
+@media (max-width:980px){
+  .menu-btn{display:block}
+  header.top{inset:8px 8px auto 8px}
+  main,footer{margin-left:0}
+  main{padding:calc(var(--head) + 22px) 12px 30px}
+  footer{padding:10px 16px 30px}
+  .card{padding:22px 18px}
+  .cover{padding:26px 20px}
+  .cover h1{font-size:1.7rem}
+  .cover .snake{display:none}
+  .progress{width:70px}
+  .py-status,.brand small{display:none}
+}
+@media (max-width:520px){
+  .brand{font-size:.88rem}
+  #progressText{display:none}
+  .qrow .lab{min-width:100%}
+  h2{font-size:1.3rem}
+  .card>h2 .num{width:38px;height:38px;font-size:1.05rem}
+}
+@media print{
+  header.top,.sidebar,.demo,.ex-body,.pyshell,.story,.game,.btn-row,.cover{display:none!important}
+  main,footer{margin:0;padding:0}
+  .reveal{opacity:1;transform:none}
+}
+
+/* ===== BỐ CỤC: thanh trạm ngang, không mục lục bên trái ===== */
+.sidebar,.menu-btn{display:none!important}
+main{margin:0 auto!important;max-width:1000px;padding:18px 20px 40px!important}
+footer{margin:0 auto!important;max-width:1000px;padding:10px 20px 36px!important;text-align:center}
+.stations{position:sticky;top:calc(var(--head) + 20px);z-index:45;max-width:1000px;margin:calc(var(--head) + 24px) auto 0;padding:0 20px}
+.stations-in{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;background:color-mix(in srgb,var(--card) 82%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:18px;padding:6px;box-shadow:var(--shadow)}
+.stations-in::-webkit-scrollbar{display:none}
+.stations a{flex:none;display:flex;align-items:center;gap:7px;padding:6px 12px 6px 6px;border-radius:13px;text-decoration:none;color:var(--muted);font-size:.84rem;font-weight:700;white-space:nowrap;position:relative}
+.stations a .n{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;background:var(--pri-l);color:var(--pri);font-size:.8rem;font-weight:800}
+.stations a:hover{background:var(--pri-l);color:var(--ink)}
+.stations a.active{background:var(--grad);color:#fff}
+.stations a.active .n{background:rgba(255,255,255,.25);color:#fff}
+.stations a.done .n{background:var(--ok);color:#fff}
+.stations a.done .n::after{content:"✓";position:absolute;font-size:0}
+/* XP */
+.xp{margin-left:auto;display:flex;align-items:center;gap:10px}
+.xp .lvl{font-size:.78rem;font-weight:800;color:#fff;background:var(--grad);padding:5px 11px;border-radius:99px;white-space:nowrap}
+.xp .progress{width:140px}
+#progressText{min-width:62px;text-align:right}
+/* bản đồ trạm */
+.map{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin:1em 0 .4em;position:relative}
+.map::before{content:"";position:absolute;left:10%;right:10%;top:27px;border-top:3px dashed var(--line)}
+.map a{position:relative;text-align:center;text-decoration:none;color:var(--ink);padding:0 6px;font-size:.86rem;font-weight:600}
+.map a b{display:grid;place-items:center;width:56px;height:56px;margin:0 auto 8px;border-radius:18px;background:var(--card);border:3px solid var(--pri);color:var(--pri);font-size:1.3rem;position:relative;z-index:1;transition:transform .15s}
+.map a:hover b{transform:translateY(-3px) rotate(-4deg);background:var(--pri);color:#fff}
+.map a code{display:inline-block;margin-top:4px}
+.howto{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:1em}
+.howto div{display:flex;gap:10px;align-items:flex-start;font-size:.88rem;background:var(--card2);border-radius:14px;padding:10px 12px;border:1px solid var(--line)}
+.howto i{font-style:normal;font-size:1.3rem;line-height:1}
+/* truyện tranh */
+.comic{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:1em}
+.panel{margin:0;background:var(--card);border:3px solid var(--ink);border-radius:6px;overflow:hidden;box-shadow:6px 6px 0 var(--pri);transform:rotate(var(--rot,0deg));transition:transform .2s}
+.panel:nth-child(odd){--rot:-.6deg}.panel:nth-child(even){--rot:.6deg}
+.panel:hover{transform:rotate(0) scale(1.01)}
+.panel svg{display:block;width:100%;height:auto;border-bottom:3px solid var(--ink)}
+.panel figcaption{padding:12px 14px 14px;font-size:.9rem}
+.panel .pn{display:inline-block;background:var(--sun);color:#3a2300;font-weight:900;border-radius:6px;padding:0 8px;margin-right:6px;font-size:.8rem}
+.panel h4{display:inline;margin:0;font-size:1rem;color:var(--pri-d)}
+.panel p{margin:.4em 0 0}
+.stars{color:var(--sun);letter-spacing:1px;font-size:.9rem}
+@media (max-width:760px){
+  .comic{grid-template-columns:1fr}
+  .map{grid-template-columns:1fr;gap:8px}
+  .map::before{left:27px;right:auto;top:10px;bottom:10px;border-top:0;border-left:3px dashed var(--line)}
+  .map a{display:flex;align-items:center;gap:12px;text-align:left}
+  .map a b{margin:0;flex:none;width:48px;height:48px}
+  .xp .progress{width:60px}
+  .xp .lvl{display:none}
+  .stations{padding:0 8px}
+  main{padding:14px 10px 30px!important}
+}
+
+/* ===== ĐIỆN THOẠI ===== */
+.keybar{display:flex;gap:6px;overflow-x:auto;padding:8px 10px;background:#1c1838;border-top:1px solid #2a2550;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.keybar::-webkit-scrollbar{display:none}
+.keybar button{flex:none;min-width:40px;height:38px;padding:0 11px;border-radius:10px;border:1px solid #3e3770;background:#2a2550;color:#ffe17a;font:700 15px "JetBrains Mono",monospace;cursor:pointer;touch-action:manipulation}
+.keybar button.w{color:#6fe3ff;font-size:13px}
+.keybar button:active{background:#6d4aff;color:#fff}
+.keybar .lbl{flex:none;align-self:center;color:#8a84b8;font:600 .72rem "Be Vietnam Pro",sans-serif;padding-right:2px}
+@media (hover:hover) and (pointer:fine) and (min-width:761px){.keybar{display:none}}
+button,a,.opt,.chip,select{touch-action:manipulation}
+@media (max-width:760px){
+  body{font-size:15.5px}
+  .card{padding:18px 14px;border-radius:18px}
+  .card>h2{font-size:1.2rem;gap:10px}
+  .ex,.quiz{padding:14px 12px;border-radius:18px}
+  .demo-bar{gap:6px;padding:8px}
+  .demo-bar .btn{flex:1 1 auto;min-height:44px;padding:8px 10px}
+  .btn{min-height:42px}
+  .btn.small{min-height:38px}
+  .console,.pyshell-out{font-size:13.5px;max-height:260px}
+  .CodeMirror.cm-s-b18{font-size:14px}
+  .console input.cin{width:100%;display:block;margin:4px 0}
+  .console .wait-tip{display:block;margin:2px 0 0}
+  input[type=text],.info-card input,.pyshell-in input,.console input.cin,.qrow select{font-size:16px}
+  .opt{padding:12px}
+  .opt input{width:20px;height:20px;margin-top:2px}
+  .chip{padding:8px 13px}
+  .shell{font-size:12.5px;padding:34px 12px 12px}
+  .shell .r{flex-wrap:wrap;gap:2px 10px;white-space:pre-wrap}
+  .shell .ann{display:block;width:100%}
+  .flow{gap:6px}.flow-box{font-size:.85rem;padding:8px 12px}
+  .ex-sample{grid-template-columns:1fr 1fr}
+  .res-table th:nth-child(1),.res-table td:nth-child(1){display:none}
+  .table-wrap table{min-width:420px}
+  .res-table{min-width:0!important}
+  .trace-code{font-size:13px}
+  .game-val{font-size:1.8rem;min-width:0;width:100%}
+  .game-btns .btn{min-width:0;flex:1 1 40%;min-height:48px}
+  .btn-row .btn{flex:1 1 100%}
+  .cover h1{font-size:1.6rem}
+  .cover .pills span{font-size:.8rem;padding:6px 10px}
+  .stations a{padding:5px 10px 5px 5px;font-size:.8rem}
+  :root{--head:56px}
+  .brand .logo{width:34px;height:34px}
+  .theme-btn{width:36px;height:36px}
+  .practice-title{font-size:.85rem}
+  .mobile-tip{display:block!important}
+}
+.mobile-tip{display:none;background:var(--sun-l);border-radius:14px;padding:10px 14px;font-size:.88rem;margin:0 0 16px;border:1px solid var(--line)}
+
+code,pre,.CodeMirror,.shell,.console,.pyshell,.chip,.keybar,.game-val,.trace-code,.flow-box{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+*{-webkit-tap-highlight-color:transparent}
+@media (max-width:760px){
+  header.top{position:absolute}
+  .stations{top:6px}
+  html{scroll-padding-top:70px}
+}
+
+.cin-row{display:inline-flex;gap:6px;align-items:center;width:60%;max-width:100%;vertical-align:middle}
+.console .cin-row input.cin{flex:1;width:auto;min-width:0;margin:0}
+.cin-send{flex:none;border:0;border-radius:9px;background:linear-gradient(135deg,#ffc23d,#ff9f1c);color:#3a2300;font:800 .85rem "Be Vietnam Pro",sans-serif;padding:6px 12px;cursor:pointer;touch-action:manipulation}
+.pyshell-in .cin-send{padding:7px 12px}
+@media (max-width:760px){
+  .cin-row{display:flex;width:100%;margin:6px 0 2px}
+  .cin-send{min-height:42px;padding:0 16px;font-size:.95rem}
+}
+</style>
+
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo">🐍</span><span>Bài 18 · Các lệnh vào ra đơn giản<small>Tin học 10 · Lập trình Python</small></span></div>
+  <span class="py-status" id="pyStatus" style="margin-left:auto">🐍 Python: chưa tải</span>
+  <div class="xp" title="Điểm kinh nghiệm: mỗi thử thách code +10 XP, mỗi câu hỏi +5 XP">
+    <span class="lvl" id="lvl">Tập sự</span>
+    <div class="progress"><div id="progressBar"></div></div>
+    <span id="progressText">0 XP</span>
+  </div>
+  <button class="theme-btn" id="themeBtn" type="button" aria-label="Đổi giao diện sáng/tối" title="Đổi giao diện sáng/tối">🌙</button>
+</header>
+
+<nav class="stations" aria-label="Các trạm của bài học"><div class="stations-in">
+  <a href="#chuyen" data-sec="chuyen"><span class="n">💬</span>Truyện</a>
+  <a href="#muctieu" data-sec="muctieu"><span class="n">🗺</span>Lộ trình</a>
+  <a href="#input" data-sec="input"><span class="n">1</span>input()</a>
+  <a href="#print" data-sec="print"><span class="n">2</span>print()</a>
+  <a href="#kieu" data-sec="kieu"><span class="n">3</span>type()</a>
+  <a href="#chuyendoi" data-sec="chuyendoi"><span class="n">4</span>Đổi kiểu</a>
+  <a href="#nhapso" data-sec="nhapso"><span class="n">5</span>Nhập số</a>
+  <a href="#thuchanh" data-sec="thuchanh"><span class="n">6</span>Thực hành</a>
+  <a href="#luyentap" data-sec="luyentap"><span class="n">7</span>Luyện tập</a>
+  <a href="#vandung" data-sec="vandung"><span class="n">8</span>Vận dụng</a>
+  <a href="#nopbai" data-sec="nopbai"><span class="n">🏁</span>Về đích</a>
+</div></nav>
+
+<main>
+<div class="cover reveal in">
+  <span class="kicker">TIN HỌC 10 · CHỦ ĐỀ F · BÀI 18</span>
+  <h1>Các lệnh vào ra đơn giản</h1>
+  <p>Dạy chương trình biết hỏi, biết trả lời và biết phân biệt số với chữ. Học bằng cách tự gõ code, chạy thử và được chấm ngay.</p>
+  <div class="pills"><span>🗺 5 trạm kiến thức</span><span>🎯 12 thử thách code</span><span>💭 7 câu hỏi</span><span>⭐ 160 XP</span></div>
+  <a class="cta" href="#chuyen">Xuất phát →</a>
+  <div class="snake"><b>ten</b> = <i>input</i>("Tên em? ")<br><i>print</i>("Xin chào", <b>ten</b>)</div>
+</div>
+
+<!-- ================= CÂU CHUYỆN ================= -->
+<section id="chuyen" class="card">
+  <h2><span class="num">💬</span>Truyện tranh: An và robot Pi</h2>
+  <p>Sáu khung tranh dưới đây kể chuyện bạn An lập trình cho robot Pi biết hỏi, biết đáp và gặp một lỗi rất “khó đỡ”. Đọc lần lượt từ trái sang phải, từ trên xuống dưới.</p>
+  <div class="comic" id="comic"></div>
+</section>
+
+<!-- ================= MỤC TIÊU ================= -->
+<section id="muctieu" class="card hero">
+  <h2><span class="num">🗺</span>Lộ trình bài học</h2>
+  <p><b>Đích đến của bài:</b></p>
+  <ul class="goal-list">
+    <li>Viết được lệnh <code>input()</code> để nhận dữ liệu từ bàn phím và lệnh <code>print()</code> để hiển thị kết quả.</li>
+    <li>Dùng <code>type()</code> để biết một giá trị thuộc kiểu nào.</li>
+    <li>Đổi dữ liệu qua lại giữa các kiểu cơ bản bằng <code>int()</code>, <code>float()</code>, <code>str()</code>.</li>
+  </ul>
+  <h3>5 trạm kiến thức</h3>
+  <div class="map">
+    <a href="#input"><b>1</b>Nhận dữ liệu<br><code>input()</code></a>
+    <a href="#print"><b>2</b>Hiển thị<br><code>print()</code></a>
+    <a href="#kieu"><b>3</b>Soi kiểu<br><code>type()</code></a>
+    <a href="#chuyendoi"><b>4</b>Đổi kiểu<br><code>int() float() str()</code></a>
+    <a href="#nhapso"><b>5</b>Nhập số<br><code>int(input())</code></a>
+  </div>
+  <p class="cap">Sau 5 trạm là chặng Thực hành, Luyện tập, Vận dụng và vạch đích.</p>
+  <p class="mobile-tip">📱 <b>Học trên điện thoại:</b> dùng hàng phím <b>Chèn</b> ngay dưới khung code để gõ nhanh <code>input()</code>, <code>print()</code>, dấu ngoặc, dấu nháy… Nên xoay ngang máy khi viết bài dài.</p>
+  <div class="howto">
+    <div><i>⌨</i><span>Code được sửa trực tiếp trong khung <b>main.py</b>. Nhấn <b>Ctrl + Enter</b> hoặc nút ▶ để chạy.</span></div>
+    <div><i>🟨</i><span>Gặp <code>input()</code>, khung kết quả hiện <b>ô nhập vàng nhấp nháy</b>: gõ dữ liệu rồi Enter.</span></div>
+    <div><i>⭐</i><span>Mỗi thử thách hoàn thành <b>+10 XP</b>, mỗi câu hỏi đúng <b>+5 XP</b>. Lên cấp từ Tập sự đến Bậc thầy.</span></div>
+    <div><i>⏳</i><span>Python được tải về trình duyệt ở lần đầu, mất khoảng vài giây.</span></div>
+  </div>
+</section>
+
+<!-- ================= 1. INPUT ================= -->
+<section id="input" class="card">
+  <h2><span class="num">1</span>Lệnh <code>input()</code>: chương trình biết hỏi</h2>
+  <div class="act">
+    <div class="act-h">🔎 Khởi động</div>
+    <div class="act-b">
+      <p>Khi đăng kí tài khoản trên một trang web, em thường gặp một hộp thoại yêu cầu gõ tên, mật khẩu rồi bấm OK. Chương trình đã <b>đưa ra</b> lời nhắc và <b>nhận vào</b> dữ liệu em gõ. Em đã biết lệnh <code>print()</code> để đưa dữ liệu ra. Vậy theo em, lệnh <code>input()</code> để nhập dữ liệu sẽ được viết như thế nào?</p>
+    </div>
+  </div>
+
+  <p>Mọi chương trình đều làm ba việc: <b>nhận dữ liệu vào → xử lí → đưa kết quả ra</b>. Vì thế ngôn ngữ lập trình nào cũng có lệnh để nhập và lệnh để xuất dữ liệu. Trong Python:</p>
+  <div class="flow">
+    <div class="flow-box user">⌨ Bàn phím</div>
+    <div class="flow-arrow">➜ <code>input()</code> ➜</div>
+    <div class="flow-box mem">Chương trình xử lí</div>
+    <div class="flow-arrow">➜ <code>print()</code> ➜</div>
+    <div class="flow-box screen">🖥 Màn hình</div>
+  </div>
+
+  <div class="act">
+    <div class="act-h">Hoạt động 1 · Tìm hiểu chức năng của lệnh input()</div>
+    <div class="act-b">
+      <p>Quan sát lệnh dưới đây trong cửa sổ lệnh Python. Người dùng gõ <b>12</b> rồi nhấn Enter. Lệnh <code>input()</code> cho phép nhập dữ liệu từ đâu? Giá trị nhận được là số hay xâu?</p>
+      <div class="shell">
+        <div class="r"><span><span class="p">&gt;&gt;&gt;</span> input("Nhập một số: ")</span></div>
+        <div class="r"><span class="o">Nhập một số: 12</span><span class="ann">người dùng gõ 12 rồi nhấn Enter</span></div>
+        <div class="r"><span class="o">'12'</span><span class="ann">kết quả nằm trong dấu nháy</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="quiz" data-q="q1"></div>
+
+  <p>Lệnh <code>input()</code> <b>dừng chương trình lại</b>, hiện lời nhắc (nếu có), chờ người dùng gõ từ bàn phím và nhấn Enter. Những gì người dùng gõ, dù là chữ, là số hay một biểu thức, đều được trả về dưới dạng <b>một xâu kí tự</b>.</p>
+  <p>Cú pháp hay dùng nhất là gán kết quả nhập cho một biến:</p>
+  <p><code class="big">&lt;biến&gt; = input(&lt;lời nhắc&gt;)</code></p>
+  <div class="table-wrap"><table>
+    <tr><th>Thành phần</th><th>Ý nghĩa</th></tr>
+    <tr><td><code>&lt;biến&gt;</code></td><td>Nơi cất xâu kí tự mà người dùng gõ vào.</td></tr>
+    <tr><td><code>&lt;lời nhắc&gt;</code></td><td>Xâu hiện ra để hướng dẫn người dùng cần gõ gì. Có thể bỏ trống: <code>input()</code>.</td></tr>
+  </table></div>
+
+  <h3>⚡ Chạy ví dụ: gõ họ tên vào ô vàng khi được hỏi</h3>
+  <div class="demo" data-id="d1"><textarea>name = input("Nhập họ tên em: ")
+print("Xin chào", name)</textarea></div>
+  <div class="note"><b>Mẹo:</b> nên kết thúc lời nhắc bằng một dấu cách, ví dụ <code>"Nhập họ tên em: "</code>, để chữ em gõ không dính vào lời nhắc.</div>
+
+  <div class="practice" data-ex="th1,th2"></div>
+</section>
+
+<!-- ================= 2. PRINT ================= -->
+<section id="print" class="card">
+  <h2><span class="num">2</span>Lệnh <code>print()</code>: đưa dữ liệu ra màn hình</h2>
+  <p>Lệnh <code>print()</code> đưa thông tin ra thiết bị ra chuẩn, thường là màn hình. Trong ngoặc có thể đặt <b>một hoặc nhiều</b> giá trị, ngăn cách nhau bởi dấu phẩy. Các giá trị có thể khác kiểu nhau và có thể là một biểu thức, khi đó máy tính tính biểu thức trước rồi mới in.</p>
+  <p><code class="big">print(&lt;giá trị 1&gt;, &lt;giá trị 2&gt;, ...)</code></p>
+  <div class="table-wrap"><table>
+    <tr><th>Câu lệnh</th><th>Màn hình hiện</th><th>Nhận xét</th></tr>
+    <tr><td><code>print("Lớp 10A1")</code></td><td><code>Lớp 10A1</code></td><td>In một xâu (không in dấu nháy)</td></tr>
+    <tr><td><code>print(12 * 3 + 4)</code></td><td><code>40</code></td><td>Tính biểu thức rồi in kết quả</td></tr>
+    <tr><td><code>print("Điểm:", 8.5)</code></td><td><code>Điểm: 8.5</code></td><td>Nhiều giá trị khác kiểu, tự chèn một dấu cách giữa chúng</td></tr>
+    <tr><td><code>print(10 &gt; 3)</code></td><td><code>True</code></td><td>In giá trị lôgic</td></tr>
+    <tr><td><code>print()</code></td><td><i>(một dòng trống)</i></td><td>Không có giá trị nào: chỉ xuống dòng</td></tr>
+  </table></div>
+  <div class="note warn"><b>Phân biệt:</b> <code>print("5 + 3")</code> in ra nguyên xâu <code>5 + 3</code>, còn <code>print(5 + 3)</code> in ra <code>8</code>.</div>
+
+  <h3>⚡ Đoán trước, chạy sau: mỗi dòng sẽ in ra gì?</h3>
+  <div class="demo" data-id="d2"><textarea>ten = "Minh"
+diem = 9
+print("Bạn", ten, "được", diem, "điểm")
+print("Tổng 2 bài:", diem + 7)
+print("5 + 3")
+print(5 + 3)</textarea></div>
+
+  <details class="ex-hint"><summary>Mở rộng (không bắt buộc): tham số sep và end</summary>
+    <p>Mặc định <code>print()</code> chèn một dấu cách giữa các giá trị và xuống dòng ở cuối. Có thể đổi bằng <code>sep</code> và <code>end</code>, ví dụ <code>print(15, 11, 2026, sep="/")</code> in ra <code>15/11/2026</code>. Em có thể thử ngay trong khung code ở trên.</p>
+  </details>
+
+  <div class="practice" data-ex="th3"></div>
+</section>
+
+<!-- ================= 3. KIỂU DỮ LIỆU ================= -->
+<section id="kieu" class="card">
+  <h2><span class="num">3</span>Kiểu dữ liệu và lệnh <code>type()</code></h2>
+  <div class="act">
+    <div class="act-h">Hoạt động 2 · Nhận biết kiểu dữ liệu của biến</div>
+    <div class="act-b"><p>Em đã gặp số nguyên, số thực và xâu kí tự. Python có cách nào để cho ta biết một biến đang chứa dữ liệu thuộc kiểu nào không?</p></div>
+  </div>
+  <p>Lệnh <code>type(&lt;giá trị hoặc biến&gt;)</code> cho biết kiểu dữ liệu. Quan sát ví dụ, trong đó dòng đầu gán <b>cùng lúc</b> ba biến: <code>n</code> nhận 10, <code>x</code> nhận 1.8, <code>s</code> nhận "One".</p>
+  <div class="shell">
+    <div class="r"><span><span class="p">&gt;&gt;&gt;</span> n, x, s = 10, 1.8, "One"</span><span class="ann">gán ba biến trong một lệnh</span></div>
+    <div class="r"><span><span class="p">&gt;&gt;&gt;</span> type(n)</span></div>
+    <div class="r"><span class="o">&lt;class 'int'&gt;</span><span class="ann">n là số nguyên</span></div>
+    <div class="r"><span><span class="p">&gt;&gt;&gt;</span> type(x)</span></div>
+    <div class="r"><span class="o">&lt;class 'float'&gt;</span><span class="ann">x là số thực</span></div>
+    <div class="r"><span><span class="p">&gt;&gt;&gt;</span> type(s)</span></div>
+    <div class="r"><span class="o">&lt;class 'str'&gt;</span><span class="ann">s là xâu kí tự</span></div>
+  </div>
+  <p>Ngoài ba kiểu trên còn có <b>kiểu lôgic</b> <code>bool</code>, chỉ gồm hai giá trị <code>True</code> (đúng) và <code>False</code> (sai). Kết quả của các phép so sánh luôn thuộc kiểu này.</p>
+  <div class="shell">
+    <div class="r"><span><span class="p">&gt;&gt;&gt;</span> 3 &gt; 2</span></div>
+    <div class="r"><span class="o">True</span><span class="ann">phép so sánh trả về True hoặc False</span></div>
+    <div class="r"><span><span class="p">&gt;&gt;&gt;</span> b = 10 &gt; 3</span></div>
+    <div class="r"><span><span class="p">&gt;&gt;&gt;</span> type(b)</span></div>
+    <div class="r"><span class="o">&lt;class 'bool'&gt;</span><span class="ann">b có kiểu lôgic</span></div>
+  </div>
+  <div class="table-wrap"><table>
+    <tr><th>Kiểu</th><th>Tên gọi</th><th>Ví dụ</th><th>Dấu hiệu nhận biết</th></tr>
+    <tr><td><span class="tt int">int</span></td><td>Số nguyên</td><td><code>15</code>, <code>-7</code>, <code>0</code></td><td>Không có dấu chấm thập phân</td></tr>
+    <tr><td><span class="tt float">float</span></td><td>Số thực</td><td><code>1.8</code>, <code>3.0</code>, <code>-0.5</code></td><td>Có dấu chấm thập phân (không dùng dấu phẩy)</td></tr>
+    <tr><td><span class="tt str">str</span></td><td>Xâu kí tự</td><td><code>"One"</code>, <code>'12'</code>, <code>"True"</code></td><td>Nằm trong cặp nháy đơn hoặc nháy kép</td></tr>
+    <tr><td><span class="tt bool">bool</span></td><td>Lôgic</td><td><code>True</code>, <code>False</code></td><td>Chỉ có đúng hai giá trị, viết hoa chữ đầu</td></tr>
+  </table></div>
+
+  <h3>Cửa sổ lệnh Python: tự gõ để kiểm tra</h3>
+  <p class="cap">Gõ một biểu thức rồi nhấn Enter (hoặc bấm vào lệnh mẫu). Máy trả lời giống hệt cửa sổ lệnh Python thật.</p>
+  <div class="pyshell" data-shell="s1" data-chips='["n, x, s = 10, 1.8, \"One\"","type(n)","type(x)","type(s)","type(10 > 3)","type(\"10\")","type(3.0)","type(True)","type(\"True\")"]'></div>
+
+  <h3>Trò chơi: Đoán nhanh kiểu dữ liệu</h3>
+  <div class="game" id="typeGame">
+    <div class="game-score" id="gScore">Bấm “Bắt đầu” để chơi 10 lượt</div>
+    <div class="game-val" id="gVal">?</div>
+    <div class="game-btns" id="gBtns">
+      <button class="btn" data-t="int" disabled>int</button>
+      <button class="btn" data-t="float" disabled style="background:var(--t-float)">float</button>
+      <button class="btn" data-t="str" disabled style="background:var(--t-str)">str</button>
+      <button class="btn" data-t="bool" disabled style="background:var(--t-bool)">bool</button>
+    </div>
+    <div class="game-msg" id="gMsg"></div>
+    <button class="btn ghost light" id="gStart" type="button">▶ Bắt đầu</button>
+  </div>
+
+  <div class="keybox"><ul>
+    <li>Một số kiểu dữ liệu cơ bản của Python: <code>int</code> (số nguyên), <code>float</code> (số thực), <code>str</code> (xâu kí tự), <code>bool</code> (lôgic).</li>
+    <li>Lệnh <code>type()</code> cho biết kiểu dữ liệu của một giá trị hay một biến.</li>
+  </ul></div>
+
+  <div class="quiz" data-q="q2"></div>
+  <div class="practice" data-ex="th4"></div>
+</section>
+
+<!-- ================= 4. CHUYỂN ĐỔI ================= -->
+<section id="chuyendoi" class="card">
+  <h2><span class="num">4</span>Chuyển đổi giữa các kiểu dữ liệu</h2>
+  <div class="act">
+    <div class="act-h">Hoạt động 3 · Tìm hiểu cách chuyển đổi giữa các kiểu dữ liệu</div>
+    <div class="act-b">
+      <p><b>1.</b> Có thể biến dữ liệu thuộc kiểu này thành kiểu khác được không?</p>
+      <p><b>2.</b> Biến <code>s</code> đang chứa xâu <code>"123"</code>. Nếu muốn <code>s</code> trở thành số nguyên 123 để tính toán thì em làm thế nào?</p>
+    </div>
+  </div>
+  <p>Python có ba lệnh mang tên đúng bằng tên kiểu dữ liệu. Mỗi lệnh nhận một giá trị và trả về giá trị tương ứng thuộc kiểu đó:</p>
+  <div class="table-wrap"><table>
+    <tr><th>Lệnh</th><th>Đổi thành</th><th>Đổi được</th><th>Ví dụ</th></tr>
+    <tr><td><code>int()</code></td><td><span class="tt int">int</span> số nguyên</td><td>Số thực (bỏ phần thập phân), xâu chỉ chứa một số nguyên</td><td><code>int(12.6)</code> → <code>12</code><br><code>int("123")</code> → <code>123</code></td></tr>
+    <tr><td><code>float()</code></td><td><span class="tt float">float</span> số thực</td><td>Số nguyên, xâu chứa một số nguyên hoặc số thực</td><td><code>float(8)</code> → <code>8.0</code><br><code>float("10.23")</code> → <code>10.23</code></td></tr>
+    <tr><td><code>str()</code></td><td><span class="tt str">str</span> xâu kí tự</td><td>Hầu như mọi giá trị</td><td><code>str(12+34)</code> → <code>'46'</code><br><code>str(2&gt;3)</code> → <code>'False'</code></td></tr>
+  </table></div>
+
+  <h3>Khi nào máy báo lỗi?</h3>
+  <p><code>int()</code> <b>không</b> đổi được xâu chứa số thực, và cả <code>int()</code> lẫn <code>float()</code> đều <b>không</b> tính biểu thức nằm trong xâu. Khi đó Python dừng lại và báo lỗi <code>ValueError</code>:</p>
+  <div class="shell">
+    <div class="r"><span><span class="p">&gt;&gt;&gt;</span> int("10.35")</span><span class="ann">xâu chứa số thực</span></div>
+    <div class="r e">Traceback (most recent call last):</div>
+    <div class="r e">  File "&lt;pyshell&gt;", line 1, in &lt;module&gt;</div>
+    <div class="r e">ValueError: invalid literal for int() with base 10: '10.35'</div>
+    <div class="r"><span><span class="p">&gt;&gt;&gt;</span> int("12+45")</span><span class="ann">xâu chứa biểu thức</span></div>
+    <div class="r e">ValueError: invalid literal for int() with base 10: '12+45'</div>
+  </div>
+
+  <h3>Quan sát các ngăn nhớ thay đổi</h3>
+  <p class="cap">Bấm “⏭ Chạy dòng tiếp”. Mỗi ngăn nhớ có một nhãn màu cho biết kiểu dữ liệu đang chứa.</p>
+  <div class="viz" id="viz1"></div>
+
+  <h3>Cửa sổ lệnh: thử chuyển đổi</h3>
+  <p class="cap">Bấm các lệnh mẫu, kể cả những lệnh gây lỗi, để xem Python phản ứng ra sao. Em cũng có thể tự gõ lệnh khác.</p>
+  <div class="pyshell" data-shell="s2" data-chips='["int(12.6)","int(\"123\")","int(\"10.35\")","float(8)","float(\"10.23\")","str(12 + 34)","str(12.567)","str(2 > 3)","int(\"12+45\")","float(\"123,5\")","\"12\" + \"8\"","int(\"12\") + int(\"8\")"]'></div>
+
+  <div class="keybox"><ul>
+    <li>Các lệnh <code>int()</code>, <code>float()</code>, <code>str()</code> chuyển dữ liệu sang kiểu số nguyên, số thực và xâu kí tự.</li>
+    <li><code>int()</code> và <code>float()</code> không tính được biểu thức viết trong xâu, ví dụ <code>int("12+45")</code> sẽ báo lỗi.</li>
+  </ul></div>
+
+  <div class="quiz" data-q="q3"></div>
+  <div class="quiz" data-q="q4"></div>
+  <div class="practice" data-ex="th5,th6"></div>
+</section>
+
+<!-- ================= 5. NHẬP SỐ ================= -->
+<section id="nhapso" class="card">
+  <h2><span class="num">5</span>Nhập số nguyên, số thực từ bàn phím</h2>
+  <div class="act">
+    <div class="act-h">Hoạt động 4 · Nhập dữ liệu kiểu số nguyên hoặc số thực từ bàn phím</div>
+    <div class="act-b"><p>Lệnh <code>input()</code> luôn trả về xâu kí tự. Vậy khi cần người dùng nhập một <b>con số</b> để tính toán thì phải làm thế nào?</p></div>
+  </div>
+  <p>Hãy xem điều gì xảy ra nếu quên chuyển đổi: người dùng gõ 12 và 8, nhưng máy lại “cộng” ra 128!</p>
+  <div class="demo" data-id="d3"><textarea>a = input("Số thứ nhất: ")
+b = input("Số thứ hai: ")
+print("Tổng là", a + b)    # a, b đều là xâu nên dấu + chỉ ghép xâu</textarea></div>
+  <p>Cách khắc phục: <b>bọc</b> lệnh <code>input()</code> bên trong lệnh chuyển đổi. Máy thực hiện từ trong ra ngoài: nhập xâu trước, rồi đổi xâu đó thành số.</p>
+  <div class="flow">
+    <div class="flow-box user">gõ 13</div>
+    <div class="flow-arrow">➜ <code>input()</code> trả về ➜</div>
+    <div class="flow-box code">"13"</div>
+    <div class="flow-arrow">➜ <code>int()</code> đổi thành ➜</div>
+    <div class="flow-box mem">13</div>
+  </div>
+  <div class="table-wrap"><table>
+    <tr><th>Cần nhập</th><th>Câu lệnh</th></tr>
+    <tr><td>Số nguyên</td><td><code>n = int(input("Nhập số tự nhiên: "))</code></td></tr>
+    <tr><td>Số thực</td><td><code>x = float(input("Nhập số thực x: "))</code></td></tr>
+    <tr><td>Xâu kí tự</td><td><code>ten = input("Nhập tên: ")</code> (không cần đổi)</td></tr>
+  </table></div>
+  <h3>⚡ Phiên bản đã sửa lỗi</h3>
+  <div class="demo" data-id="d4"><textarea>a = int(input("Số thứ nhất: "))
+b = int(input("Số thứ hai: "))
+print("Tổng là", a + b)
+x = float(input("Nhập một số thực: "))
+print("Gấp đôi số đó là", x * 2)</textarea></div>
+  <p class="cap">Thử gõ <b>2.5</b> cho “Số thứ nhất” để xem vì sao số nguyên phải nhập đúng dạng số nguyên.</p>
+
+  <div class="quiz" data-q="q5"></div>
+  <div class="practice" data-ex="th7,th8"></div>
+</section>
+
+<!-- ================= 6. THỰC HÀNH ================= -->
+<section id="thuchanh" class="card">
+  <h2><span class="num">6</span>Thực hành: nhập dữ liệu từ bàn phím bằng <code>input()</code></h2>
+  <p>Hai nhiệm vụ dưới đây kết hợp mọi thứ em vừa học. Làm xong, bấm <b>✅ Kiểm tra</b>: máy sẽ tự nhập nhiều bộ dữ liệu khác nhau và so sánh kết quả của em với đáp án.</p>
+  <div class="note"><b>Lưu ý khi chấm:</b> máy chỉ so sánh những gì <code>print()</code> in ra, <b>bỏ qua lời nhắc</b> trong <code>input()</code>, nên em cứ viết lời nhắc tùy ý. Chữ có dấu hay không dấu đều được chấp nhận.</div>
+  <div class="practice" data-ex="nv1,nv2"></div>
+</section>
+
+<!-- ================= 7. LUYỆN TẬP ================= -->
+<section id="luyentap" class="card">
+  <h2><span class="num">7</span>Luyện tập</h2>
+  <div class="quiz" data-q="q6"></div>
+  <div class="quiz" data-q="q7"></div>
+  <p class="cap">Em có thể kiểm chứng các câu trên bằng cửa sổ lệnh ở phần 4.</p>
+</section>
+
+<!-- ================= 8. VẬN DỤNG ================= -->
+<section id="vandung" class="card">
+  <h2><span class="num">8</span>Vận dụng</h2>
+  <p>Hai bài toán gần với thực tế. Em cần nhớ lại hai phép toán đã học ở bài trước:</p>
+  <div class="note"><code>//</code> là phép chia <b>lấy phần nguyên</b>, <code>%</code> là phép chia <b>lấy phần dư</b>. Ví dụ <code>100 // 60</code> bằng 1 và <code>100 % 60</code> bằng 40, tức 100 giây là 1 phút 40 giây. Còn <code>x ** 0.5</code> là căn bậc hai của <code>x</code>.</div>
+  <div class="demo" data-id="d5"><textarea>print(100 // 60, 100 % 60)
+print(3725 // 3600)          # số giờ trọn vẹn trong 3725 giây
+print(3725 % 3600)           # số giây còn lại
+print(144 ** 0.5)            # căn bậc hai của 144</textarea></div>
+  <div class="practice" data-ex="vd1,vd2"></div>
+</section>
+
+<!-- ================= 9. NỘP BÀI ================= -->
+<section id="nopbai" class="card">
+  <h2><span class="num">🏁</span>Về đích: tổng kết & phiếu kết quả</h2>
+  <div class="keybox"><ul>
+    <li><code>input(&lt;lời nhắc&gt;)</code> nhập dữ liệu từ bàn phím và <b>luôn trả về xâu kí tự</b>.</li>
+    <li><code>print(...)</code> đưa một hoặc nhiều giá trị (cả biểu thức) ra màn hình.</li>
+    <li>Bốn kiểu dữ liệu cơ bản: <code>int</code>, <code>float</code>, <code>str</code>, <code>bool</code>; lệnh <code>type()</code> cho biết kiểu.</li>
+    <li><code>int()</code>, <code>float()</code>, <code>str()</code> chuyển đổi kiểu; nhập số dùng <code>int(input())</code> hoặc <code>float(input())</code>.</li>
+  </ul></div>
+  <div class="summary" id="summary"></div>
+  <ul class="sum-list" id="sumList"></ul>
+  <h3>Điền thông tin lên phiếu</h3>
+  <div class="info-card"><div class="info-row">
+    <label>Họ và tên<input id="fName" maxlength="60" placeholder="Nguyễn Văn A" autocomplete="name"></label>
+    <label>Lớp<input id="fClass" maxlength="15" placeholder="10A1" autocomplete="off"></label>
+  </div></div>
+  <p class="who-line cap">Phiếu kết quả của: <b id="whoLabel">(chưa nhập tên)</b> · thông tin chỉ lưu trên máy của em.</p>
+  <div class="btn-row">
+    <button class="btn big" id="btnSheet" type="button" style="background:linear-gradient(135deg,#0f9d58,#0b8043)">📤 Nộp bài cho thầy cô</button>
+    <button class="btn big" id="btnCopy" type="button">📋 Sao chép kết quả</button>
+    <button class="btn big" id="btnDownload" type="button" style="background:linear-gradient(135deg,#14c38e,#0ea371)">⬇ Tải phiếu kết quả (.txt)</button>
+    <button class="btn ghost light" id="btnReset" type="button">↺ Xóa tiến độ, làm lại</button>
+  </div>
+  <div id="submitMsg" class="result neutral" hidden></div>
+  <p class="cap">Bấm <b>📤 Nộp bài cho thầy cô</b> để gửi kết quả (kèm code từng bài) vào bảng điểm của lớp. Được nộp lại nhiều lần, bảng điểm luôn giữ lần nộp mới nhất. Nếu mạng lỗi, em dùng nút Sao chép hoặc Tải phiếu để gửi qua nhóm lớp.</p>
+</section>
+</main>
+
+<footer>Bài 18 · Các lệnh vào ra đơn giản · Tin học 10 · Trang học tương tác dùng Python chạy ngay trên trình duyệt (Pyodide).</footer>
+
+<!-- ===================== Python khởi tạo ===================== -->
+<script type="text/plain" id="pySetup">
+import sys, ast, json, traceback, inspect
+import js
+
+class _Out:
+    def __init__(self, fn):
+        self.fn = fn
+    def write(self, s):
+        if s:
+            self.fn(s)
+        return len(s)
+    def flush(self):
+        pass
+
+sys.stdout = _Out(js.b18_write)
+sys.stderr = _Out(js.b18_write)
+
+async def __ainput(prompt=''):
+    r = await js.b18_input(str(prompt))
+    r = str(r)
+    if r == '\x00EOF':
+        raise EOFError('EOF when reading a line')
+    return r
+
+class _Rw(ast.NodeTransformer):
+    def visit_Call(self, node):
+        self.generic_visit(node)
+        if isinstance(node.func, ast.Name) and node.func.id == 'input':
+            node.func = ast.Name(id='__ainput', ctx=ast.Load())
+            return ast.Await(value=node)
+        return node
+
+def _prep(src, mode):
+    tree = ast.parse(src, '<code>', mode)
+    tree = _Rw().visit(tree)
+    ast.fix_missing_locations(tree)
+    return compile(tree, '<code>', mode, flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+
+def _errinfo(e):
+    line = None
+    if isinstance(e, SyntaxError):
+        line = e.lineno
+        msg = e.msg or ''
+    else:
+        msg = str(e)
+        for fr in traceback.extract_tb(e.__traceback__):
+            if fr.filename == '<code>':
+                line = fr.lineno
+    return {'err': type(e).__name__, 'msg': msg, 'line': line}
+
+async def b18_run(src):
+    g = {'__name__': '__main__', '__ainput': __ainput}
+    try:
+        code = _prep(src, 'exec')
+        r = eval(code, g)
+        if inspect.iscoroutine(r):
+            await r
+        return json.dumps({'ok': True})
+    except BaseException as e:
+        if 'B18STOP' in str(e):
+            return json.dumps({'stopped': True})
+        return json.dumps(_errinfo(e))
+
+_shell_g = {'__name__': '__main__', '__ainput': __ainput}
+
+async def b18_shell(src):
+    try:
+        try:
+            code = _prep(src, 'eval'); is_expr = True
+        except SyntaxError:
+            code = _prep(src, 'exec'); is_expr = False
+        r = eval(code, _shell_g)
+        if inspect.iscoroutine(r):
+            r = await r
+        if is_expr and r is not None:
+            print(repr(r))
+        return json.dumps({'ok': True})
+    except BaseException as e:
+        if 'B18STOP' in str(e):
+            return json.dumps({'stopped': True})
+        return json.dumps(_errinfo(e))
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/runmode/runmode.min.js"></script>
+
+<script>
+"use strict";
+/* ============================================================
+   1. TIỆN ÍCH CHUNG
+   ============================================================ */
+/* ************************************************************
+   ⚙ CÀI ĐẶT CHO GIÁO VIÊN: dán địa chỉ Web App của Google Apps Script
+   vào giữa hai dấu nháy dưới đây (dạng https://script.google.com/macros/s/.../exec)
+   ************************************************************ */
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbyQlLiO1amf3ycJHMLK0TgPnm7XMyrzNXdoAZhD7_9WVEPdXwlJoqEiHqkAgZtHBYr8bg/exec";
+
+const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("b18:" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("b18:" + k, JSON.stringify(v)); } catch (e) {} },
+  clear() { try { Object.keys(localStorage).filter(k => k.startsWith("b18:")).forEach(k => localStorage.removeItem(k)); } catch (e) {} }
+};
+function el(tag, attrs = {}, html = "") {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v; else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v);
+  }
+  if (html) e.innerHTML = html;
+  return e;
+}
+const hasCM = () => typeof window.CodeMirror === "function";
+
+/* ============================================================
+   2. PYTHON (Pyodide)
+   ============================================================ */
+let pyPromise = null, busy = false;
+let OUT = null; // {write(s), input(prompt) -> Promise<string>}
+window.b18_write = s => { if (OUT) OUT.write(String(s)); };
+window.b18_input = p => OUT ? OUT.input(String(p)) : Promise.resolve("\u0000EOF");
+
+function setPyStatus(t, ready) { const s = $("#pyStatus"); s.textContent = t; s.classList.toggle("ready", !!ready); }
+function loadScript(src) {
+  return new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => no(new Error("Không tải được " + src)); document.head.appendChild(s); });
+}
+function loadPy() {
+  if (!pyPromise) {
+    setPyStatus("🐍 Python: đang tải…");
+    pyPromise = (async () => {
+      if (!window.loadPyodide) await loadScript(PYODIDE_URL);
+      const py = await loadPyodide({ indexURL: PYODIDE_URL.replace(/pyodide\.js$/, "") });
+      py.runPython($("#pySetup").textContent);
+      setPyStatus("🐍 Python: sẵn sàng", true);
+      return py;
+    })().catch(e => { pyPromise = null; setPyStatus("🐍 Python: lỗi tải"); throw e; });
+  }
+  return pyPromise;
+}
+async function pyCall(fn, src) {
+  const py = await loadPy();
+  py.globals.set("_b18_src", src);
+  return JSON.parse(await py.runPythonAsync(`await ${fn}(_b18_src)`));
+}
+
+/* Giải thích lỗi bằng tiếng Việt */
+function explainError(info) {
+  const m = info.msg || "", n = info.err;
+  if (n === "ValueError" && /invalid literal for int/.test(m)) return "Lệnh <b>int()</b> chỉ đổi được xâu chứa đúng một số nguyên (ví dụ \"12\"). Xâu có dấu chấm thập phân, chữ cái, dấu cách ở giữa hay một biểu thức đều không đổi được. Nếu cần nhập số thực, hãy dùng <b>float()</b>.";
+  if (n === "ValueError" && /could not convert string to float/.test(m)) return "Lệnh <b>float()</b> chỉ đổi được xâu ghi đúng một con số. Lưu ý Python dùng <b>dấu chấm</b> cho phần thập phân (2.5), không dùng dấu phẩy (2,5), và không tính biểu thức trong xâu.";
+  if (n === "TypeError" && /concatenate str|can only concatenate/.test(m)) return "Không thể dùng dấu <b>+</b> giữa xâu và số. Muốn ghép thành chữ, hãy đổi số sang xâu bằng <b>str()</b>; muốn tính toán, hãy đổi xâu sang số bằng <b>int()</b> hoặc <b>float()</b>. Cũng có thể dùng dấu phẩy trong print().";
+  if (n === "TypeError" && /unsupported operand|can't multiply|not supported between/.test(m)) return "Phép toán đang thực hiện giữa hai kiểu không phù hợp (thường là xâu và số). Kiểm tra xem em đã đổi dữ liệu nhập vào bằng <b>int()</b>/<b>float()</b> chưa.";
+  if (n === "NameError") return "Python không biết tên này. Kiểm tra lại chính tả tên biến/tên lệnh (chữ hoa khác chữ thường), hoặc có thể em quên đặt xâu trong dấu nháy.";
+  if (n === "IndentationError") return "Dòng lệnh bị thụt lề không đúng. Ở bài này các lệnh đều bắt đầu sát lề trái.";
+  if (n === "SyntaxError") {
+    if (/await/.test(m)) return "Trang này chưa hỗ trợ dùng input() bên trong hàm tự định nghĩa. Hãy viết lệnh input() ở ngoài hàm.";
+    return "Câu lệnh viết sai cú pháp. Kiểm tra dấu ngoặc tròn đóng/mở có đủ cặp không, dấu nháy của xâu, dấu phẩy giữa các giá trị.";
+  }
+  if (n === "EOFError") return "Chương trình gọi input() nhiều lần hơn số dữ liệu mà đề bài cho. Kiểm tra lại số lệnh input().";
+  if (n === "ZeroDivisionError") return "Không thể chia cho 0.";
+  return "";
+}
+function errLine(info) {
+  return (info.line ? `Dòng ${info.line} · ` : "") + `${info.err}: ${info.msg}`;
+}
+
+/* ============================================================
+   3. KHUNG KẾT QUẢ (console) + CHẠY CODE
+   ============================================================ */
+class Console {
+  constructor(node) { this.node = node; this.pending = null; }
+  clear() { this.node.innerHTML = ""; }
+  write(s, cls) {
+    const span = document.createElement("span");
+    if (cls) span.className = cls;
+    span.textContent = s;
+    this.node.appendChild(span);
+    this.node.scrollTop = this.node.scrollHeight;
+  }
+  html(h) { this.node.insertAdjacentHTML("beforeend", h); this.node.scrollTop = this.node.scrollHeight; }
+  input(prompt) {
+    if (prompt) this.write(prompt);
+    return new Promise((resolve, reject) => {
+      const row = el("span", { class: "cin-row" });
+      const inp = el("input", { class: "cin", type: "text", "aria-label": "Nhập dữ liệu", autocomplete: "off", spellcheck: "false", autocapitalize: "off", autocorrect: "off", enterkeyhint: "send" });
+      const send = el("button", { class: "cin-send", type: "button" }, "Gửi ⏎");
+      const tip = el("span", { class: "wait-tip" }, "Gõ dữ liệu rồi bấm Enter hoặc nút Gửi");
+      row.append(inp, send);
+      this.node.appendChild(row); this.node.appendChild(tip);
+      inp.focus({ preventScroll: true });
+      this.node.scrollTop = this.node.scrollHeight;
+      if (matchMedia("(max-width: 760px)").matches) setTimeout(() => inp.scrollIntoView({ block: "center", behavior: "smooth" }), 250);
+      this.pending = { reject, cleanup: () => { row.remove(); tip.remove(); } };
+      const submit = () => {
+        if (!this.pending) return;
+        const v = inp.value;
+        this.pending.cleanup(); this.pending = null;
+        this.write(v, "usr"); this.write("\n");
+        resolve(v);
+      };
+      inp.addEventListener("keydown", e => { if (e.key === "Enter" || e.keyCode === 13) { e.preventDefault(); submit(); } });
+      send.addEventListener("mousedown", e => e.preventDefault());
+      send.addEventListener("click", submit);
+    });
+  }
+  abort() { if (this.pending) { this.pending.cleanup(); this.pending.reject(new Error("B18STOP")); this.pending = null; } }
+}
+
+let currentRun = null;
+async function runInteractive(src, con, btns) {
+  if (busy) { con.clear(); con.write("Một chương trình khác đang chạy (có thể đang chờ em nhập). Hãy nhập xong hoặc bấm ⏹ Dừng ở chương trình đó trước.\n", "sys"); return; }
+  busy = true; con.clear();
+  btns.run.disabled = true; btns.stop.hidden = false;
+  currentRun = con;
+  try {
+    if (!pyPromise || !window.__pyReady) con.write("Đang tải Python, em chờ vài giây…\n", "sys");
+    await loadPy(); window.__pyReady = true;
+    if (con.node.firstChild && con.node.firstChild.classList && con.node.firstChild.classList.contains("sys")) con.clear();
+    OUT = { write: s => con.write(s), input: p => con.input(p) };
+    const res = await pyCall("b18_run", src);
+    if (res.stopped) con.write("\n⏹ Đã dừng chương trình.\n", "sys");
+    else if (!res.ok) showErr(con, res);
+    else if (!con.node.textContent.trim()) con.write("(Chương trình chạy xong nhưng không in ra gì. Em đã dùng print() chưa?)", "sys");
+  } catch (e) {
+    con.write("Không tải được Python. Hãy kiểm tra kết nối Internet rồi thử lại.\n" + e.message, "err");
+  } finally {
+    OUT = null; busy = false; currentRun = null;
+    btns.run.disabled = false; btns.stop.hidden = true;
+  }
+}
+function showErr(con, info) {
+  if (con.node.lastChild && con.node.textContent && !con.node.textContent.endsWith("\n")) con.write("\n");
+  con.write("❌ " + errLine(info), "err");
+  const vn = explainError(info);
+  if (vn) con.html(`<span class="vn">💬 ${vn}</span>`);
+}
+
+/* Trình soạn code */
+function makeEditor(textarea) {
+  if (hasCM()) {
+    const cm = CodeMirror.fromTextArea(textarea, {
+      mode: "python", theme: "b18", lineNumbers: true, indentUnit: 4, tabSize: 4,
+      autoCloseBrackets: true, matchBrackets: true, viewportMargin: Infinity,
+      inputStyle: "contenteditable", spellcheck: false, autocorrect: false, autocapitalize: false,
+      extraKeys: { Tab: c => c.replaceSelection("    "), "Ctrl-Enter": () => textarea.__run && textarea.__run(), "Cmd-Enter": () => textarea.__run && textarea.__run() }
+    });
+    return { get: () => cm.getValue(), set: v => cm.setValue(v), onChange: f => cm.on("change", f), refresh: () => cm.refresh(),
+      insert(t, back = 0) { cm.replaceSelection(t); if (back) { const c = cm.getCursor(); cm.setCursor({ line: c.line, ch: c.ch - back }); } cm.focus(); } };
+  }
+  textarea.classList.add("plain-editor"); textarea.spellcheck = false;
+  textarea.setAttribute("autocapitalize", "off"); textarea.setAttribute("autocorrect", "off");
+  return { get: () => textarea.value, set: v => { textarea.value = v; }, onChange: f => textarea.addEventListener("input", f), refresh() {},
+    insert(t, back = 0) { const a = textarea.selectionStart, b = textarea.selectionEnd; textarea.setRangeText(t, a, b, "end"); const pos = a + t.length - back; textarea.setSelectionRange(pos, pos); textarea.focus(); textarea.dispatchEvent(new Event("input")); } };
+}
+
+/* Hàng phím kí hiệu cho điện thoại */
+const KEYS = [["input()", 1, "w"], ["print()", 1, "w"], ["int()", 1, "w"], ["float()", 1, "w"], ["str()", 1, "w"], ["type()", 1, "w"],
+  ["( )", 0, "", "()", 1], ['" "', 0, "", '""', 1], ["=", 0, "", " = "], [",", 0, "", ", "], ["+", 0, "", " + "], ["-", 0, "", " - "], ["*", 0, "", " * "], ["/", 0, "", " / "],
+  ["//", 0, "", " // "], ["%", 0, "", " % "], ["**", 0, "", " ** "], ["#", 0, "", "# "], ["⇥", 0, "", "    "], ["⏎", 0, "", "\n"]];
+function makeKeybar(ed) {
+  const bar = el("div", { class: "keybar", "aria-label": "Phím kí hiệu" });
+  bar.appendChild(el("span", { class: "lbl" }, "Chèn:"));
+  KEYS.forEach(([label, back, cls, text, back2]) => {
+    const b = el("button", { type: "button", class: cls || "", tabindex: "-1" }, esc(label));
+    b.addEventListener("mousedown", e => e.preventDefault());
+    b.addEventListener("click", () => ed.insert(text !== undefined ? text : label, back2 !== undefined ? back2 : back));
+    bar.appendChild(b);
+  });
+  return bar;
+}
+
+/* Ví dụ chạy thử */
+function initDemos() {
+  $$(".demo").forEach(box => {
+    const ta = $("textarea", box), id = box.dataset.id;
+    const original = ta.value;
+    const saved = store.get("demo:" + id, null);
+    if (saved !== null) ta.value = saved;
+    const ed = makeEditor(ta);
+    const bar = el("div", { class: "demo-bar" });
+    const run = el("button", { class: "btn run", type: "button", title: "Ctrl+Enter" }, "▶ Chạy");
+    const stop = el("button", { class: "btn stop", type: "button" }, "⏹ Dừng"); stop.hidden = true;
+    const reset = el("button", { class: "btn ghost", type: "button" }, "↺ Code ban đầu");
+    bar.append(run, stop, reset);
+    const conNode = el("div", { class: "console", "aria-live": "polite" });
+    box.append(makeKeybar(ed), bar, conNode);
+    const con = new Console(conNode);
+    const go = () => runInteractive(ed.get(), con, { run, stop });
+    ta.__run = go;
+    run.onclick = go;
+    stop.onclick = () => con.abort();
+    reset.onclick = () => { ed.set(original); store.set("demo:" + id, null); con.clear(); };
+    ed.onChange(() => store.set("demo:" + id, ed.get()));
+  });
+}
+
+/* Tô màu các khối code tĩnh */
+function highlightStatic() {
+  if (!hasCM() || !CodeMirror.runMode) return;
+  $$("pre.py").forEach(p => { const t = p.textContent; p.textContent = ""; CodeMirror.runMode(t, "python", p); });
+}
+
+/* ============================================================
+   4. CỬA SỔ LỆNH PYTHON (>>>)
+   ============================================================ */
+function initShells() {
+  $$(".pyshell").forEach(box => {
+    const chips = JSON.parse(box.dataset.chips || "[]");
+    box.innerHTML = `<div class="pyshell-out" aria-live="polite"><span class="p">Python 3 · cửa sổ lệnh. Gõ lệnh rồi nhấn Enter.</span>\n</div>
+      <div class="pyshell-in"><span>&gt;&gt;&gt;</span><input type="text" aria-label="Gõ lệnh Python" autocomplete="off" spellcheck="false" placeholder="ví dụ: type(3.5)" autocapitalize="off" autocorrect="off" enterkeyhint="go"><button type="button" class="cin-send">Chạy ⏎</button></div>`;
+    const out = $(".pyshell-out", box), inp = $("input", box);
+    const chipWrap = el("div", { class: "chips" });
+    chips.forEach(c => chipWrap.appendChild(el("button", { class: "chip", type: "button", onclick: () => exec(c) }, esc(c))));
+    box.after(chipWrap);
+    const hist = []; let hi = 0;
+    const w = (s, cls) => { const sp = document.createElement("span"); if (cls) sp.className = cls; sp.textContent = s; out.appendChild(sp); out.scrollTop = out.scrollHeight; };
+    async function exec(cmd) {
+      cmd = cmd.trim(); if (!cmd) return;
+      if (busy) { w("(Đang có chương trình khác chạy, em đợi chút nhé)\n", "err"); return; }
+      hist.push(cmd); hi = hist.length;
+      w(">>> ", "p"); w(cmd + "\n");
+      busy = true; inp.disabled = true;
+      try {
+        if (!window.__pyReady) w("Đang tải Python…\n", "p");
+        await loadPy(); window.__pyReady = true;
+        OUT = { write: s => w(s), input: () => Promise.resolve("\u0000EOF") };
+        const res = await pyCall("b18_shell", cmd);
+        if (!res.ok && !res.stopped) {
+          w("Traceback (most recent call last):\n  File \"<pyshell>\", line 1, in <module>\n", "err");
+          w(`${res.err}: ${res.msg}\n`, "err");
+          const vn = explainError(res);
+          if (vn) { const s = el("span", { class: "vn" }, "💬 " + vn); out.appendChild(s); }
+          out.scrollTop = out.scrollHeight;
+        }
+      } catch (e) { w("Không tải được Python: " + e.message + "\n", "err"); }
+      finally { OUT = null; busy = false; inp.disabled = false; if (!matchMedia("(pointer: coarse)").matches) inp.focus({ preventScroll: true }); }
+    }
+    const sendBtn = $(".cin-send", box);
+    sendBtn.addEventListener("mousedown", e => e.preventDefault());
+    sendBtn.addEventListener("click", () => { const v = inp.value; inp.value = ""; exec(v); });
+    inp.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.keyCode === 13) { e.preventDefault(); const v = inp.value; inp.value = ""; exec(v); }
+      else if (e.key === "ArrowUp" && hist.length) { hi = Math.max(0, hi - 1); inp.value = hist[hi]; e.preventDefault(); }
+      else if (e.key === "ArrowDown" && hist.length) { hi = Math.min(hist.length, hi + 1); inp.value = hist[hi] || ""; e.preventDefault(); }
+    });
+  });
+}
+
+/* ============================================================
+   5. BÀI THỰC HÀNH CÓ CHẤM ĐIỂM
+   ============================================================ */
+const EX = {
+  th1: { title: "Thử thách 1 · Lời chào", goal: "Viết chương trình nhập họ tên rồi in ra lời chào <b>Xin chào</b> kèm họ tên vừa nhập.",
+    steps: ["Dùng <code>input()</code> để nhập họ tên, gán cho biến <code>name</code>.", "Dùng <code>print()</code> in xâu <code>\"Xin chào\"</code> và biến <code>name</code>, ngăn cách bằng dấu phẩy."],
+    starter: "# Viết code của em ở đây\n", sampleIn: "Lê Minh An", sampleOut: "Xin chào Lê Minh An",
+    hint: "name = input(\"Nhập họ tên: \")\nprint(\"Xin chào\", name)",
+    tests: [{ in: ["Lê Minh An"], out: "Xin chào Lê Minh An" }, { in: ["Tran Thu Ha"], out: "Xin chào Tran Thu Ha" }],
+    must: [[/input\s*\(/, "Bài này cần dùng lệnh input() để nhập họ tên."]] },
+  th2: { title: "Thử thách 2 · Kiểm chứng: input() trả về kiểu gì?", goal: "Nhập một số bất kì vào biến <code>x</code>, sau đó in ra kiểu dữ liệu của <code>x</code> để kiểm chứng kết quả ở Hoạt động 1.",
+    steps: ["Dòng 1: <code>x = input(\"Nhập một số: \")</code>", "Dòng 2: in ra <code>type(x)</code>."],
+    starter: "x = input(\"Nhập một số: \")\n", sampleIn: "12", sampleOut: "<class 'str'>",
+    hint: "print(type(x))", tests: [{ in: ["12"], out: "<class 'str'>" }, { in: ["3.5"], out: "<class 'str'>" }],
+    must: [[/type\s*\(/, "Hãy dùng lệnh type() để in ra kiểu dữ liệu."]] },
+  th3: { title: "Thử thách 3 · In phép tính", goal: "Cho sẵn <code>a = 7</code>, <code>b = 3</code>. Dùng <b>một lệnh print với nhiều giá trị</b> cho mỗi dòng để in ra phép cộng và phép nhân như mẫu. Kết quả phải do máy tính, không gõ sẵn.",
+    steps: ["Dòng 1 in: <code>a</code>, xâu <code>\"+\"</code>, <code>b</code>, xâu <code>\"=\"</code>, biểu thức <code>a + b</code>.", "Dòng 2 tương tự với phép nhân, dùng xâu <code>\"x\"</code> và biểu thức <code>a * b</code>."],
+    starter: "a = 7\nb = 3\n", sampleIn: null, sampleOut: "7 + 3 = 10\n7 x 3 = 21",
+    hint: "print(a, \"+\", b, \"=\", a + b)", tests: [{ in: [], out: "7 + 3 = 10\n7 x 3 = 21" }],
+    must: [[/a\s*\+\s*b/, "Hãy để máy tự tính bằng biểu thức a + b."], [/a\s*\*\s*b/, "Hãy để máy tự tính bằng biểu thức a * b."]] },
+  th4: { title: "Thử thách 4 · Soi kiểu dữ liệu", goal: "Dòng đầu đã gán cùng lúc 4 biến. Hãy in kiểu dữ liệu của từng biến <code>n</code>, <code>x</code>, <code>s</code>, <code>b</code>, mỗi biến một dòng.",
+    steps: ["Dùng <code>print(type(n))</code> cho biến đầu tiên.", "Làm tương tự với <code>x</code>, <code>s</code>, <code>b</code>."],
+    starter: "n, x, s, b = 10, 1.8, \"One\", 10 > 3\n", sampleIn: null, sampleOut: "<class 'int'>\n<class 'float'>\n<class 'str'>\n<class 'bool'>",
+    hint: "print(type(n))\nprint(type(x))\n...", tests: [{ in: [], out: "<class 'int'>\n<class 'float'>\n<class 'str'>\n<class 'bool'>" }],
+    must: [[/type\s*\(/, "Hãy dùng lệnh type()."]] },
+  th5: { title: "Thử thách 5 · Sửa lỗi chuyển đổi", goal: "Chương trình dưới đây bị lỗi <code>ValueError</code> ngay dòng 1. Hãy sửa <b>một lệnh chuyển đổi</b> ở dòng 1 để chương trình chạy được và in ra đúng như mẫu.",
+    steps: ["Bấm <b>▶ Chạy</b> để xem lỗi.", "Xâu <code>\"12.5\"</code> chứa số thực, vậy nên dùng lệnh nào thay cho <code>int()</code>?", "Không sửa các dòng khác."],
+    starter: "so1 = int(\"12.5\")\nso2 = float(\"7\")\nnam = str(2026)\nprint(so1 + so2)\nprint(\"Năm \" + nam)\n", sampleIn: null, sampleOut: "19.5\nNăm 2026",
+    hint: "so1 = float(\"12.5\")", tests: [{ in: [], out: "19.5\nNăm 2026" }],
+    must: [[/float\s*\(\s*["']12\.5["']\s*\)/, "Dòng 1 cần đổi xâu \"12.5\" bằng lệnh phù hợp với số thực."]] },
+  th6: { title: "Thử thách 6 · Ghép xâu với số", goal: "Lệnh print bên dưới báo lỗi <code>TypeError</code> vì đang “cộng” xâu với số. Hãy dùng lệnh <code>str()</code> để sửa, giữ nguyên cách ghép bằng dấu <code>+</code>.",
+    steps: ["Bấm ▶ Chạy để xem lỗi.", "Đổi <code>tuoi</code> thành xâu bằng <code>str(tuoi)</code> ngay trong lệnh print."],
+    starter: "tuoi = 16\nprint(\"Em năm nay \" + tuoi + \" tuổi\")\n", sampleIn: null, sampleOut: "Em năm nay 16 tuổi",
+    hint: "print(\"Em năm nay \" + str(tuoi) + \" tuổi\")", tests: [{ in: [], out: "Em năm nay 16 tuổi" }],
+    must: [[/str\s*\(\s*tuoi\s*\)/, "Hãy dùng str(tuoi) để đổi số thành xâu."]] },
+  th7: { title: "Thử thách 7 · Tổng hai số nguyên", goal: "Nhập hai số nguyên <code>a</code> và <code>b</code> (mỗi số một lần nhập). In ra tổng của chúng.",
+    steps: ["Nhập <code>a</code> bằng <code>int(input(...))</code>.", "Nhập <code>b</code> tương tự.", "In ra <code>a + b</code>."],
+    starter: "", sampleIn: "12\n8", sampleOut: "20",
+    hint: "a = int(input(\"Nhập a: \"))\nb = int(input(\"Nhập b: \"))\nprint(a + b)",
+    tests: [{ in: ["12", "8"], out: "20" }, { in: ["-3", "10"], out: "7" }, { in: ["100", "250"], out: "350" }],
+    must: [[/int\s*\(\s*input/, "Hãy dùng int(input()) để nhập số nguyên."]] },
+  th8: { title: "Thử thách 8 · Diện tích hình tròn", goal: "Nhập bán kính <code>r</code> là một số thực. In ra diện tích hình tròn theo công thức <code>S = 3.14 × r × r</code>.",
+    steps: ["Nhập <code>r</code> bằng <code>float(input(...))</code>.", "Tính <code>S = 3.14 * r * r</code>.", "In ra <code>S</code>."],
+    starter: "", sampleIn: "2", sampleOut: "12.56",
+    hint: "r = float(input(\"Bán kính: \"))\nS = 3.14 * r * r\nprint(S)",
+    tests: [{ in: ["2"], out: "12.56" }, { in: ["1.5"], out: "7.065" }, { in: ["10"], out: "314.0" }],
+    tol: 0.001, must: [[/float\s*\(\s*input/, "Bán kính có thể là số thực, hãy dùng float(input())."]] },
+  nv1: { title: "Nhiệm vụ 1 · Tổng ba số tự nhiên", goal: "Viết chương trình nhập lần lượt ba số tự nhiên <code>m</code>, <code>n</code>, <code>p</code>, sau đó in ra tổng của ba số này.",
+    steps: ["Dùng ba lệnh <code>int(input(...))</code> để nhập <code>m</code>, <code>n</code>, <code>p</code>.", "In ra dòng chữ <code>Tổng ba số đã nhập là</code> rồi đến giá trị <code>m + n + p</code>."],
+    starter: "", sampleIn: "3\n5\n7", sampleOut: "Tổng ba số đã nhập là 15",
+    hint: "m = int(input(\"Nhập số nguyên m: \"))\nn = int(input(\"Nhập số nguyên n: \"))\np = int(input(\"Nhập số nguyên p: \"))\nprint(\"Tổng ba số đã nhập là\", m + n + p)",
+    tests: [{ in: ["3", "5", "7"], out: "Tổng ba số đã nhập là 15" }, { in: ["10", "0", "25"], out: "Tổng ba số đã nhập là 35" }, { in: ["123", "456", "789"], out: "Tổng ba số đã nhập là 1368" }],
+    must: [[/int\s*\(\s*input/, "Hãy dùng int(input()) để nhập số."]] },
+  nv2: { title: "Nhiệm vụ 2 · Giới thiệu học sinh", goal: "Viết chương trình nhập họ tên, sau đó nhập tuổi của một học sinh và in ra thông báo theo mẫu: <b>Bạn Nguyễn Hoài Bình 15 tuổi</b>.",
+    steps: ["Lệnh 1: nhập họ tên vào biến <code>ten</code> (xâu, không cần đổi kiểu).", "Lệnh 2: nhập tuổi vào biến <code>tuoi</code>, nhớ đổi sang số nguyên.", "In ra: <code>\"Bạn\"</code>, <code>ten</code>, <code>tuoi</code>, <code>\"tuổi\"</code>."],
+    starter: "", sampleIn: "Nguyễn Hoài Bình\n15", sampleOut: "Bạn Nguyễn Hoài Bình 15 tuổi",
+    hint: "ten = input(\"Nhập họ tên học sinh: \")\ntuoi = int(input(\"Nhập tuổi: \"))\nprint(\"Bạn\", ten, tuoi, \"tuổi\")",
+    tests: [{ in: ["Nguyễn Hoài Bình", "15"], out: "Bạn Nguyễn Hoài Bình 15 tuổi" }, { in: ["Pham Gia Huy", "16"], out: "Bạn Pham Gia Huy 16 tuổi" }],
+    must: [[/int\s*\(\s*input/, "Tuổi là số nguyên, hãy dùng int(input())."]] },
+  vd1: { title: "Vận dụng 1 · Đổi giây ra ngày, giờ, phút, giây", goal: "Nhập một số nguyên <code>ss</code> là số giây. In ra thời gian đó đổi thành bao nhiêu <b>ngày, giờ, phút, giây</b> trên một dòng theo mẫu.",
+    steps: ["1 ngày = 86400 giây, 1 giờ = 3600 giây, 1 phút = 60 giây.", "<code>ngay = ss // 86400</code>", "Số giây còn lại sau khi bỏ số ngày là <code>ss % 86400</code>; từ đó tính tiếp giờ, phút, giây bằng <code>//</code> và <code>%</code>.", "In theo mẫu: <code>1 ngày 3 giờ 46 phút 40 giây</code>."],
+    starter: "ss = int(input(\"Nhập số giây: \"))\n", sampleIn: "100000", sampleOut: "1 ngày 3 giờ 46 phút 40 giây",
+    hint: "ngay = ss // 86400\ngio = ss % 86400 // 3600\nphut = ss % 3600 // 60\ngiay = ss % 60\nprint(ngay, \"ngày\", gio, \"giờ\", phut, \"phút\", giay, \"giây\")",
+    tests: [{ in: ["100000"], out: "1 ngày 3 giờ 46 phút 40 giây" }, { in: ["3725"], out: "0 ngày 1 giờ 2 phút 5 giây" }, { in: ["90061"], out: "1 ngày 1 giờ 1 phút 1 giây" }, { in: ["259199"], out: "2 ngày 23 giờ 59 phút 59 giây" }] },
+  vd2: { title: "Vận dụng 2 · Chu vi và diện tích tam giác", goal: "Nhập ba số thực dương <code>a</code>, <code>b</code>, <code>c</code> là độ dài ba cạnh của một tam giác. In ra <b>chu vi</b> ở dòng 1 và <b>diện tích</b> ở dòng 2.",
+    steps: ["Nhập <code>a</code>, <code>b</code>, <code>c</code> bằng <code>float(input(...))</code>.", "Chu vi: <code>a + b + c</code>; nửa chu vi: <code>p = (a + b + c) / 2</code>.", "Công thức Heron: <code>S = (p * (p - a) * (p - b) * (p - c)) ** 0.5</code>.", "In chu vi, rồi in <code>S</code>."],
+    starter: "", sampleIn: "3\n4\n5", sampleOut: "12.0\n6.0",
+    hint: "p = (a + b + c) / 2\nS = (p * (p - a) * (p - b) * (p - c)) ** 0.5\nprint(a + b + c)\nprint(S)",
+    tests: [{ in: ["3", "4", "5"], out: "12.0\n6.0" }, { in: ["5", "5", "6"], out: "16.0\n12.0" }, { in: ["2", "2", "2"], out: "6.0\n1.7320508075688772" }],
+    tol: 0.01, note: "Được phép làm tròn đến 2 chữ số thập phân.", must: [[/float\s*\(\s*input/, "Độ dài cạnh là số thực, hãy dùng float(input())."]] }
+};
+
+function normLine(s) {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").replace(/[ \t]+/g, " ").trim();
+}
+function normOut(s) { const L = String(s).replace(/\r/g, "").split("\n").map(normLine); while (L.length && !L[L.length - 1]) L.pop(); return L; }
+function sameOut(got, exp, tol) {
+  const g = normOut(got), e = normOut(exp);
+  if (g.length !== e.length) return false;
+  return g.every((line, i) => {
+    if (line === e[i]) return true;
+    if (!tol) return false;
+    const a = line.split(" "), b = e[i].split(" ");
+    if (a.length !== b.length) return false;
+    return a.every((t, j) => {
+      if (t === b[j]) return true;
+      const x = Number(t), y = Number(b[j]);
+      return isFinite(x) && isFinite(y) && t !== "" && Math.abs(x - y) <= tol;
+    });
+  });
+}
+
+const exState = store.get("ex", {});   // id -> {pass:bool}
+function saveEx() { store.set("ex", exState); }
+
+function renderPractice() {
+  $$(".practice[data-ex]").forEach(box => {
+    box.innerHTML = `<div class="practice-title">🎯 Thử thách của trạm</div>`;
+    box.dataset.ex.split(",").forEach(id => box.appendChild(buildEx(id)));
+  });
+}
+function buildEx(id) {
+  const ex = EX[id];
+  const wrap = el("div", { class: "ex", id: "ex-" + id });
+  const sample = `<div class="ex-sample">${ex.sampleIn !== null ? `<div><b>⤵ Đầu vào mẫu</b><pre>${esc(ex.sampleIn)}</pre></div>` : ""}<div><b>⤴ Đầu ra mong đợi</b><pre>${esc(ex.sampleOut)}</pre></div></div>`;
+  wrap.innerHTML = `<div class="ex-head"><h3>${ex.title}<span class="badge">+10 XP</span></h3>
+    <p class="ex-goal"><b>Nhiệm vụ:</b> ${ex.goal}</p>
+    <ol class="ex-steps">${ex.steps.map(s => `<li>${s}</li>`).join("")}</ol>${sample}
+    ${ex.note ? `<p class="cap">${ex.note}</p>` : ""}
+    <details class="ex-hint"><summary>Mở khóa gợi ý</summary><pre class="py">${esc(ex.hint)}</pre></details></div>
+    <div class="ex-body"><textarea spellcheck="false"></textarea></div><div class="ex-res"></div>`;
+  const ta = $("textarea", wrap);
+  ta.value = store.get("code:" + id, ex.starter);
+  const body = $(".ex-body", wrap);
+  // editor is created after insertion (CodeMirror needs layout) -> defer
+  queueMicrotask(() => {
+    const ed = makeEditor(ta);
+    const bar = el("div", { class: "demo-bar" });
+    const run = el("button", { class: "btn run", type: "button", title: "Ctrl+Enter" }, "▶ Chạy");
+    const stop = el("button", { class: "btn stop", type: "button" }, "⏹ Dừng"); stop.hidden = true;
+    const check = el("button", { class: "btn check", type: "button" }, "✅ Kiểm tra");
+    const reset = el("button", { class: "btn ghost", type: "button" }, "↺ Code ban đầu");
+    bar.append(run, stop, check, reset);
+    const conNode = el("div", { class: "console", "aria-live": "polite" });
+    body.append(makeKeybar(ed), bar, conNode);
+    const con = new Console(conNode);
+    const go = () => runInteractive(ed.get(), con, { run, stop });
+    ta.__run = go; run.onclick = go; stop.onclick = () => con.abort();
+    check.onclick = () => grade(id, ed.get(), wrap, check);
+    let armed = false;
+    reset.onclick = () => {
+      if (!armed) { armed = true; reset.textContent = "Bấm lần nữa để xóa code"; setTimeout(() => { armed = false; reset.textContent = "↺ Code ban đầu"; }, 2500); return; }
+      ed.set(ex.starter); store.set("code:" + id, ex.starter); con.clear(); $(".ex-res", wrap).innerHTML = ""; armed = false; reset.textContent = "↺ Code ban đầu";
+    };
+    ed.onChange(() => store.set("code:" + id, ed.get()));
+  });
+  setTimeout(() => markEx(id), 0);
+  return wrap;
+}
+function markEx(id) {
+  const w = $("#ex-" + id); if (!w) return;
+  const ok = !!(exState[id] && exState[id].pass);
+  w.classList.toggle("passed", ok);
+  const b = $(".badge", w); b.textContent = ok ? "✔ Hoàn thành" : "+10 XP"; b.classList.toggle("ok", ok);
+}
+async function grade(id, src, wrap, btn) {
+  const ex = EX[id], res = $(".ex-res", wrap);
+  if (busy) { res.innerHTML = `<div class="result bad">Đang có chương trình khác chạy. Hãy nhập xong hoặc bấm ⏹ Dừng trước khi chấm.</div>`; return; }
+  if (!src.trim() || src.trim() === ex.starter.trim()) { res.innerHTML = `<div class="result bad">Em chưa viết thêm code nào. Hãy làm theo yêu cầu rồi chấm lại nhé.</div>`; return; }
+  btn.disabled = true; busy = true;
+  res.innerHTML = `<div class="result neutral">⏳ ${window.__pyReady ? "Đang chấm…" : "Đang tải Python để chấm, chờ vài giây…"}</div>`;
+  const rows = []; let allOk = true;
+  try {
+    await loadPy(); window.__pyReady = true;
+    for (const t of ex.tests) {
+      let buf = ""; const q = t.in.slice();
+      OUT = { write: s => { buf += s; if (buf.length > 20000) buf = buf.slice(0, 20000); }, input: () => Promise.resolve(q.length ? q.shift() : "\u0000EOF") };
+      const r = await pyCall("b18_run", src);
+      let ok, shown = buf;
+      if (!r.ok) { ok = false; shown = (buf ? buf + "\n" : "") + "❌ " + errLine(r); r.vn = explainError(r); }
+      else ok = sameOut(buf, t.out, ex.tol);
+      if (!ok) allOk = false;
+      rows.push({ t, ok, shown, vn: r.vn });
+    }
+  } catch (e) {
+    res.innerHTML = `<div class="result bad">Không tải được Python để chấm. Kiểm tra kết nối Internet rồi thử lại.</div>`;
+    OUT = null; busy = false; btn.disabled = false; return;
+  }
+  OUT = null; busy = false; btn.disabled = false;
+  const mustFail = (ex.must || []).filter(([re]) => !re.test(src)).map(([, m]) => m);
+  const pass = allOk && !mustFail.length;
+  const nOk = rows.filter(r => r.ok).length;
+  let html = pass
+    ? `<div class="result ok">🏅 Hoàn thành thử thách, +10 XP! Chương trình cho kết quả đúng với cả ${rows.length} bộ dữ liệu.</div>`
+    : `<div class="result bad">Chưa hoàn thành: đúng ${nOk}/${rows.length} bộ dữ liệu. Xem bảng bên dưới để tìm chỗ sai.${mustFail.length ? "<br>" + mustFail.map(m => "• " + m).join("<br>") : ""}</div>`;
+  const hasIn = ex.tests.some(t => t.in.length);
+  html += `<div class="table-wrap"><table class="res-table"><tr><th>#</th>${hasIn ? "<th>Máy nhập</th>" : ""}<th>Kết quả đúng</th><th>Chương trình em in ra</th><th></th></tr>` +
+    rows.map((r, i) => `<tr><td>${i + 1}</td>${hasIn ? `<td><pre>${esc(r.t.in.join("\n"))}</pre></td>` : ""}<td><pre>${esc(r.t.out)}</pre></td><td><pre>${esc(r.shown) || "<i>(không in gì)</i>"}</pre>${r.vn ? `<div class="cap">💬 ${r.vn}</div>` : ""}</td><td>${r.ok ? "✅" : "❌"}</td></tr>`).join("") + `</table></div>`;
+  res.innerHTML = html;
+  if (pass || !(exState[id] && exState[id].pass)) { exState[id] = { pass: pass || !!(exState[id] && exState[id].pass) }; }
+  saveEx(); markEx(id); updateProgress();
+}
+
+/* ============================================================
+   6. CÂU HỎI TRẮC NGHIỆM
+   ============================================================ */
+const QUIZ = {
+  q1: { title: "Dự đoán · Hoạt động 1", type: "mc", q: "Theo em, giá trị mà lệnh <code>input()</code> trả về khi người dùng gõ <b>12</b> là gì?",
+    opts: ["Số nguyên <code>12</code>", "Xâu kí tự <code>'12'</code>", "Số thực <code>12.0</code>", "Không có giá trị nào"], ans: 1,
+    exp: "Lệnh <code>input()</code> nhận dữ liệu từ <b>bàn phím</b>. Dù người dùng gõ chữ số, kết quả vẫn là <b>xâu</b> <code>'12'</code>, vì vậy cửa sổ lệnh hiển thị nó trong dấu nháy." },
+  q2: { title: "Câu hỏi · Xác định kiểu và giá trị", type: "rows",
+    q: "Chọn <b>kiểu dữ liệu</b> và <b>giá trị</b> của mỗi biểu thức (gợi ý: có thể kiểm tra lại bằng cửa sổ lệnh ở trên).",
+    rows: [
+      { lab: '<code>"15 + 20 - 7"</code>', sels: [["int", "float", "str", "bool"], ["28", "'15 + 20 - 7'", "True"]], ans: [2, 1] },
+      { lab: "<code>32 &gt; 45</code>", sels: [["int", "float", "str", "bool"], ["True", "False", "-13"]], ans: [3, 1] },
+      { lab: "<code>13 != 8 + 5</code>", sels: [["int", "float", "str", "bool"], ["True", "False", "0"]], ans: [3, 1] },
+      { lab: "<code>1 == 2</code>", sels: [["int", "float", "str", "bool"], ["True", "False", "-1"]], ans: [3, 1] }
+    ],
+    exp: "a) Nằm trong dấu nháy nên là <b>xâu</b>, máy không tính. b) 32 không lớn hơn 45 nên <code>False</code>. c) 8 + 5 = 13, mà 13 khác 13 là sai nên <code>False</code>. d) 1 không bằng 2 nên <code>False</code>. Kết quả của phép so sánh luôn có kiểu <code>bool</code>." },
+  q3: { title: "Câu hỏi 1 · Kết quả của các lệnh", type: "rows", q: "Mỗi lệnh sau trả lại giá trị nào?",
+    rows: [
+      { lab: "a) <code>str(150)</code>", sels: [["150", "'150'", "150.0", "Báo lỗi"]], ans: [1] },
+      { lab: 'b) <code>int("1110")</code>', sels: [["1110", "'1110'", "14", "Báo lỗi"]], ans: [0] },
+      { lab: 'c) <code>float("15.0")</code>', sels: [["15", "'15.0'", "15.0", "Báo lỗi"]], ans: [2] }
+    ],
+    exp: "a) <code>str()</code> biến số 150 thành xâu <code>'150'</code>. b) Xâu chứa số nguyên nên <code>int()</code> đổi được thành <code>1110</code> (hệ thập phân, không phải nhị phân). c) <code>float()</code> đổi xâu thành số thực <code>15.0</code>." },
+  q4: { title: "Câu hỏi 2 · Lệnh nào báo lỗi?", type: "mc", q: "Lệnh nào sau đây sẽ báo lỗi?",
+    opts: ['<code>int("12.0")</code>', "<code>float(13 + 1)</code>", "<code>str(17.801)</code>"], ans: 0,
+    exp: 'Xâu <code>"12.0"</code> có dấu chấm thập phân nên <code>int()</code> không đổi được, gây lỗi <code>ValueError</code>. <code>float(13 + 1)</code> cho <code>14.0</code>; <code>str(17.801)</code> cho <code>\'17.801\'</code>.' },
+  q5: { title: "Câu hỏi · Đúng hay sai?", type: "mc", q: 'Dùng lệnh <code>x = input("Nhập số x: ")</code> để nhập <b>số</b> cho biến <code>x</code> là đúng hay sai?',
+    opts: ["Đúng, vì người dùng gõ chữ số", "Sai, vì x nhận được một xâu kí tự chứ không phải số", "Đúng, nếu lời nhắc có chữ “số”"], ans: 1,
+    exp: "Lệnh trên chạy không lỗi, nhưng <code>x</code> chỉ chứa xâu (ví dụ <code>'5'</code>), chưa dùng để tính toán được. Cần viết <code>x = int(input(...))</code> hoặc <code>x = float(input(...))</code>." },
+  q6: { title: "Luyện tập 1 · Những lệnh nào báo lỗi?", type: "multi", q: "Chọn <b>tất cả</b> các lệnh sẽ báo lỗi:",
+    opts: ['a) <code>int("12+45")</code>', "b) <code>float(123.56)</code>", 'c) <code>float("123,5.5")</code>'], ans: [0, 2],
+    exp: "a) Lỗi: <code>int()</code> không tính biểu thức trong xâu. b) Không lỗi: 123.56 vốn đã là số thực, kết quả <code>123.56</code>. c) Lỗi: xâu chứa dấu phẩy nên không phải là một số hợp lệ." },
+  q7: { title: "Luyện tập 2 · Vì sao dùng float(input())?", type: "mc", q: "Vì sao khi nhập một số thực ta cần viết <code>float(input())</code>?",
+    opts: ["Vì <code>input()</code> chỉ cho phép gõ số nguyên", "Vì <code>input()</code> luôn trả về xâu kí tự, cần <code>float()</code> đổi xâu đó thành số thực để tính toán", "Vì <code>float()</code> giúp hiện lời nhắc đẹp hơn", "Vì không có <code>float()</code> thì máy không cho gõ dấu chấm"], ans: 1,
+    exp: "<code>input()</code> trả về xâu, ví dụ <code>'2.5'</code>. Lệnh <code>float()</code> bọc bên ngoài biến xâu đó thành số thực <code>2.5</code>, khi đó mới cộng, trừ, nhân, chia được." }
+};
+const qState = store.get("quiz", {});
+function renderQuizzes() {
+  $$(".quiz[data-q]").forEach(box => {
+    const id = box.dataset.q, Q = QUIZ[id];
+    let body = "";
+    if (Q.type === "mc" || Q.type === "multi") {
+      const t = Q.type === "mc" ? "radio" : "checkbox";
+      body = `<div class="opts">${Q.opts.map((o, i) => `<label class="opt"><input type="${t}" name="${id}" value="${i}"><span>${o}</span></label>`).join("")}</div>`;
+    } else {
+      body = Q.rows.map((r, ri) => `<div class="qrow"><span class="lab">${r.lab}</span>${r.sels.map((s, si) => `<select data-r="${ri}" data-s="${si}"><option value="">${si === 0 && r.sels.length > 1 ? "kiểu…" : (r.sels.length > 1 ? "giá trị…" : "chọn…")}</option>${s.map((o, oi) => `<option value="${oi}">${esc(o)}</option>`).join("")}</select>`).join("")}</div>`).join("");
+    }
+    box.innerHTML = `<div class="quiz-h">💭 ${Q.title}<span class="badge">+5 XP</span></div><div class="quiz-q">${Q.q}</div>${body}
+      <div class="quiz-foot"><button class="btn small" type="button">Kiểm tra</button><span class="qmsg"></span></div><div class="quiz-exp" hidden>💡 ${Q.exp}</div>`;
+    $("button", box).onclick = () => checkQuiz(id, box);
+    if (qState[id] && qState[id].pass) markQuiz(id, box, true);
+  });
+}
+function checkQuiz(id, box) {
+  const Q = QUIZ[id]; let ok = false, answered = true;
+  if (Q.type === "mc") {
+    const sel = $("input:checked", box); if (!sel) answered = false;
+    else { ok = +sel.value === Q.ans; $$(".opt", box).forEach((o, i) => { o.classList.remove("right", "wrong"); if (i === +sel.value) o.classList.add(ok ? "right" : "wrong"); }); }
+  } else if (Q.type === "multi") {
+    const picked = $$("input:checked", box).map(i => +i.value);
+    if (!picked.length) answered = false;
+    else { ok = picked.length === Q.ans.length && Q.ans.every(a => picked.includes(a)); $$(".opt", box).forEach((o, i) => { o.classList.remove("right", "wrong"); if (picked.includes(i)) o.classList.add(Q.ans.includes(i) ? "right" : "wrong"); }); }
+  } else {
+    ok = true;
+    $$("select", box).forEach(s => {
+      s.classList.remove("right", "wrong");
+      if (s.value === "") { answered = false; return; }
+      const good = +s.value === Q.rows[+s.dataset.r].ans[+s.dataset.s];
+      s.classList.add(good ? "right" : "wrong"); if (!good) ok = false;
+    });
+  }
+  const msg = $(".qmsg", box);
+  if (!answered) { msg.textContent = "Em hãy chọn đủ đáp án trước khi kiểm tra."; return; }
+  msg.textContent = ok ? "✅ Chính xác!" : "❌ Chưa đúng, em xem lại phần được tô đỏ nhé.";
+  if (ok) { $(".quiz-exp", box).hidden = false; qState[id] = { pass: true }; store.set("quiz", qState); markQuiz(id, box, false); updateProgress(); }
+  else if (!(qState[id] && qState[id].pass)) { qState[id] = { pass: false, tried: true }; store.set("quiz", qState); }
+}
+function markQuiz(id, box, restore) {
+  box.classList.add("passed");
+  const b = $(".badge", box); b.textContent = "✔ Đúng"; b.classList.add("ok");
+  if (restore) {
+    const Q = QUIZ[id];
+    if (Q.type === "mc") { const i = $$("input", box)[Q.ans]; i.checked = true; i.closest(".opt").classList.add("right"); }
+    else if (Q.type === "multi") Q.ans.forEach(a => { const i = $$("input", box)[a]; i.checked = true; i.closest(".opt").classList.add("right"); });
+    else $$("select", box).forEach(s => { s.value = Q.rows[+s.dataset.r].ans[+s.dataset.s]; s.classList.add("right"); });
+    $(".quiz-exp", box).hidden = false; $(".qmsg", box).textContent = "✅ Em đã trả lời đúng câu này.";
+  }
+}
+
+/* ============================================================
+   7. MÔ PHỎNG TỪNG BƯỚC (bộ nhớ)
+   ============================================================ */
+function initTracer() {
+  const box = $("#viz1");
+  const lines = ['s = input("Nhập số: ")', "n = int(s)", "x = float(s)", 't = s + "3"', "k = n + 3"];
+  const steps = [
+    { msg: "Máy dừng ở <code>input()</code>, người dùng gõ <b>12</b>. Kết quả là xâu <code>\"12\"</code> được cất vào hộp <code>s</code>.", v: ["s", '"12"', "str"] },
+    { msg: "<code>int(s)</code> đọc xâu \"12\" và tạo ra <b>số nguyên</b> 12, cất vào <code>n</code>. Hộp <code>s</code> vẫn giữ nguyên xâu.", v: ["n", "12", "int"] },
+    { msg: "<code>float(s)</code> tạo ra <b>số thực</b> 12.0 và cất vào <code>x</code>.", v: ["x", "12.0", "float"] },
+    { msg: "<code>s</code> là xâu nên dấu <code>+</code> <b>ghép</b> \"12\" với \"3\" thành xâu <code>\"123\"</code>.", v: ["t", '"123"', "str"] },
+    { msg: "<code>n</code> là số nên dấu <code>+</code> <b>cộng</b>: 12 + 3 = 15. Cùng dấu +, khác kiểu thì khác kết quả!", v: ["k", "15", "int"] }
+  ];
+  const codeHtml = lines.map((l, i) => `<span class="ln" data-n="${i + 1}"></span>`).join("");
+  box.innerHTML = `<div class="trace-body"><pre class="trace-code cm-s-b18">${codeHtml}</pre><div class="mem"><div class="mem-title">🗄 Các ngăn nhớ</div><div class="mem-box"></div></div></div>
+    <div class="trace-msg"></div><div class="trace-btns"><button class="btn run" type="button">⏭ Chạy dòng tiếp</button><button class="btn ghost light" type="button">⏮ Về đầu</button></div>`;
+  $$(".ln", box).forEach((s, i) => { if (hasCM() && CodeMirror.runMode) CodeMirror.runMode(lines[i], "python", s); else s.textContent = lines[i]; });
+  const lns = $$(".ln", box), mem = $(".mem-box", box), msg = $(".trace-msg", box);
+  const [next, again] = $$(".trace-btns button", box);
+  let k = 0;
+  function render() {
+    lns.forEach((l, i) => { l.classList.toggle("cur", i === k - 1); l.classList.toggle("ran", i < k - 1); });
+    mem.innerHTML = k === 0 ? '<span class="cap">(trống)</span>' : steps.slice(0, k).map((s, i) =>
+      `<div class="var-box${i === k - 1 ? " new" : ""}"><div class="tag">${s.v[0]}</div><div class="val">${esc(s.v[1])}</div><div class="ty"><span class="tt ${s.v[2]}">${s.v[2]}</span></div></div>`).join("");
+    msg.innerHTML = k === 0 ? "Các ngăn nhớ đang trống. Bấm “⏭ Chạy dòng tiếp” để thực hiện dòng 1 (giả sử người dùng gõ 12)." : `<b>Dòng ${k}:</b> ${steps[k - 1].msg}`;
+    next.disabled = k >= steps.length;
+  }
+  next.onclick = () => { if (k < steps.length) { k++; render(); } };
+  again.onclick = () => { k = 0; render(); };
+  render();
+}
+
+/* ============================================================
+   8. TRÒ CHƠI ĐOÁN KIỂU
+   ============================================================ */
+function initGame() {
+  const pool = [["15", "int"], ["-7", "int"], ["0", "int"], ["2026", "int"], ["3.0", "float"], ["-0.5", "float"], ["1.8", "float"], ["100.25", "float"],
+    ['"15"', "str"], ["'3.14'", "str"], ['"Xin chào"', "str"], ['"True"', "str"], ['""', "str"], ["True", "bool"], ["False", "bool"], ["5 > 3", "bool"],
+    ["7 + 2", "int"], ["7 / 2", "float"], ["10 / 5", "float"], ['"7" + "2"', "str"], ["2 == 2.0", "bool"], ["int(4.9)", "int"], ['float("8")', "float"], ["str(12)", "str"]];
+  const why = { "7 / 2": "phép chia / luôn cho số thực", "10 / 5": "phép chia / luôn cho số thực, kể cả khi chia hết (2.0)", '"True"': "có dấu nháy nên là xâu", "3.0": "có dấu chấm thập phân", '""': "xâu rỗng vẫn là xâu", '"7" + "2"': "ghép hai xâu được xâu '72'", "int(4.9)": "int() bỏ phần thập phân, được 4", "2 == 2.0": "phép so sánh luôn cho kiểu bool" };
+  const val = $("#gVal"), msg = $("#gMsg"), score = $("#gScore"), start = $("#gStart"), btns = $$("#gBtns button");
+  let round = 0, pts = 0, cur = null, order = [], locked = false;
+  function nextQ() {
+    if (round >= 10) {
+      val.textContent = pts >= 8 ? "🏆" : pts >= 5 ? "👍" : "💪";
+      msg.innerHTML = `Em đúng <b>${pts}/10</b>. ${pts >= 8 ? "Xuất sắc!" : pts >= 5 ? "Khá tốt, chơi lại để đạt điểm cao hơn nhé!" : "Xem lại bảng kiểu dữ liệu rồi thử lại nhé!"}`;
+      btns.forEach(b => b.disabled = true); start.hidden = false; start.textContent = "↺ Chơi lại"; return;
+    }
+    cur = order[round]; locked = false;
+    val.textContent = cur[0]; score.textContent = `Lượt ${round + 1}/10 · Điểm: ${pts}`; msg.textContent = "";
+    btns.forEach(b => b.disabled = false);
+  }
+  btns.forEach(b => b.onclick = () => {
+    if (locked) return; locked = true;
+    const ok = b.dataset.t === cur[1]; if (ok) pts++;
+    msg.innerHTML = (ok ? "✅ Đúng" : `❌ Chưa đúng, đây là <b>${cur[1]}</b>`) + (why[cur[0]] ? ` · ${why[cur[0]]}` : "");
+    btns.forEach(x => x.disabled = true);
+    round++; score.textContent = `Lượt ${Math.min(round + 1, 10)}/10 · Điểm: ${pts}`;
+    setTimeout(nextQ, ok ? 900 : 1900);
+  });
+  start.onclick = () => { order = pool.slice().sort(() => Math.random() - .5).slice(0, 10); round = 0; pts = 0; start.hidden = true; nextQ(); };
+}
+
+/* ============================================================
+   9. CÂU CHUYỆN (SVG)
+   ============================================================ */
+function svgKid(x, y, s = 1, mood = "happy") {
+  const mouth = mood === "sad" ? "M-8 -106 Q0 -113 8 -106" : mood === "wow" ? "" : "M-8 -111 Q0 -103 8 -111";
+  return `<g transform="translate(${x} ${y}) scale(${s})">
+    <rect x="-26" y="-92" width="52" height="80" rx="18" fill="#3567d6"/><rect x="-6" y="-92" width="12" height="80" fill="#ffd43b" opacity=".8"/>
+    <line x1="-14" y1="-14" x2="-16" y2="18" stroke="#2b2d42" stroke-width="10" stroke-linecap="round"/><line x1="14" y1="-14" x2="16" y2="18" stroke="#2b2d42" stroke-width="10" stroke-linecap="round"/>
+    <rect x="-7" y="-100" width="14" height="12" fill="#f3c6a1"/>
+    <circle cx="0" cy="-122" r="25" fill="#f3c6a1"/>
+    <path d="M-27 -122 Q-30 -156 0 -154 Q30 -156 27 -122 Q24 -140 10 -142 Q-6 -134 -27 -122Z" fill="#2b2d42"/>
+    <path d="M18 -146 q14 6 12 30" fill="none" stroke="#2b2d42" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="-9" cy="-121" r="3.4" fill="#1c1c2b"/><circle cx="9" cy="-121" r="3.4" fill="#1c1c2b"/>
+    <circle cx="-15" cy="-111" r="4.5" fill="#ff8aa0" opacity=".45"/><circle cx="15" cy="-111" r="4.5" fill="#ff8aa0" opacity=".45"/>
+    ${mood === "wow" ? '<ellipse cx="0" cy="-106" rx="5" ry="6" fill="#7a2336"/>' : `<path d="${mouth}" stroke="#7a2336" stroke-width="2.8" fill="none" stroke-linecap="round"/>`}
+    <line x1="-25" y1="-82" x2="-38" y2="-30" stroke="#3567d6" stroke-width="11" stroke-linecap="round"/><circle cx="-38" cy="-30" r="7" fill="#f3c6a1"/>
+    <line x1="25" y1="-82" x2="38" y2="-30" stroke="#3567d6" stroke-width="11" stroke-linecap="round"/><circle cx="38" cy="-30" r="7" fill="#f3c6a1"/>
+  </g>`;
+}
+function svgRobot(x, y, s = 1, mood = "happy", screen = "") {
+  const eyes = mood === "confused" ? `<path d="M-24 -132 l10 8 m0 -8 l-10 8" stroke="#7dffb0" stroke-width="4"/><circle cx="18" cy="-128" r="7" fill="#7dffb0"/>`
+    : `<circle cx="-18" cy="-128" r="7" fill="#7dffb0"/><circle cx="18" cy="-128" r="7" fill="#7dffb0"/>`;
+  const mouth = mood === "confused" ? `<path d="M-14 -108 q7 -6 14 0 t14 0" stroke="#7dffb0" stroke-width="3" fill="none"/>` : `<path d="M-14 -110 Q0 -100 14 -110" stroke="#7dffb0" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  return `<g transform="translate(${x} ${y}) scale(${s})">
+    <line x1="0" y1="-162" x2="0" y2="-178" stroke="#56608f" stroke-width="4"/><circle cx="0" cy="-182" r="7" fill="#ffd43b"><animate attributeName="opacity" values="1;.3;1" dur="1.6s" repeatCount="indefinite"/></circle>
+    <rect x="-44" y="-162" width="88" height="72" rx="18" fill="#7f8bbd"/><rect x="-36" y="-152" width="72" height="54" rx="12" fill="#1a2040"/>
+    ${eyes}${mouth}
+    <rect x="-38" y="-84" width="76" height="72" rx="14" fill="#a9b3da"/><rect x="-26" y="-74" width="52" height="34" rx="6" fill="#1a2040"/>
+    <text x="0" y="-51" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#ffd43b" font-weight="700">${screen}</text>
+    <line x1="-38" y1="-70" x2="-58" y2="-36" stroke="#7f8bbd" stroke-width="10" stroke-linecap="round"/><line x1="38" y1="-70" x2="58" y2="-36" stroke="#7f8bbd" stroke-width="10" stroke-linecap="round"/>
+    <rect x="-28" y="-12" width="16" height="26" rx="5" fill="#56608f"/><rect x="12" y="-12" width="16" height="26" rx="5" fill="#56608f"/>
+  </g>`;
+}
+function svgBubble(x, y, w, h, text, tail = "left", mono = false, color = "#fff") {
+  const tx = tail === "left" ? x + 26 : x + w - 26;
+  const tp = tail === "left" ? `${tx},${y + h} ${tx - 14},${y + h + 22} ${tx + 14},${y + h}` : `${tx - 14},${y + h} ${tx + 14},${y + h + 22} ${tx + 14},${y + h}`;
+  const lines = text.split("\n");
+  return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="16" fill="${color}" stroke="#c3cbe6" stroke-width="2"/><polygon points="${tp}" fill="${color}"/>
+    ${lines.map((l, i) => `<text x="${x + w / 2}" y="${y + h / 2 + (i - (lines.length - 1) / 2) * 24 + 7}" text-anchor="middle" font-size="19" font-weight="700" fill="#1f2540" ${mono ? 'font-family="Consolas,monospace"' : ""}>${l}</text>`).join("")}</g>`;
+}
+const BG = `<rect width="800" height="450" fill="#e8ecf9"/><rect y="360" width="800" height="90" fill="#c9d1ec"/><circle cx="90" cy="70" r="34" fill="#fff6d0"/>`;
+const STORY = [
+  { tag: "Chặng mở đầu", title: "Chú robot biết hỏi", text: "An viết chương trình đầu tiên cho robot Pi. Vừa chạy, Pi liền hỏi: <b>“Bạn tên gì?”</b> rồi đứng chờ. Câu hỏi ấy đến từ lệnh <code>input()</code>: chương trình <b>dừng lại</b> và đợi người dùng gõ phím.",
+    svg: () => BG + svgRobot(540, 360, 1.25, "happy", "input()") + svgBubble(470, 40, 250, 70, "Bạn tên gì?", "left") + svgKid(240, 362, 1.3, "happy") +
+      `<rect x="120" y="300" width="230" height="58" rx="8" fill="#56608f"/><g fill="#a9b3da">${[0,1,2,3,4,5,6,7].map(i => `<rect x="${132 + i * 27}" y="310" width="20" height="14" rx="3"/>`).join("")}${[0,1,2,3,4,5,6].map(i => `<rect x="${145 + i * 27}" y="330" width="20" height="14" rx="3"/>`).join("")}</g>` },
+  { tag: "Chặng 2", title: "Pi trả lời lại", text: "An gõ <b>An</b> rồi nhấn Enter. Pi cất chữ đó vào biến <code>name</code>, rồi dùng <code>print()</code> nói lại: <b>“Xin chào An”</b>. Nhập vào bằng <code>input()</code>, đưa ra bằng <code>print()</code>: đó là hai lệnh vào ra cơ bản.",
+    svg: () => BG + svgKid(230, 362, 1.3, "happy") + svgBubble(110, 40, 180, 64, "An ⏎", "left", true, "#fff7d6") + svgRobot(560, 360, 1.25, "happy", "print()") + svgBubble(440, 40, 280, 70, "Xin chào An!", "right") +
+      `<g transform="translate(330 200)"><rect width="140" height="50" rx="10" fill="#fff" stroke="#3567d6" stroke-width="2" stroke-dasharray="6 4"/><text x="70" y="22" text-anchor="middle" font-family="Consolas,monospace" font-size="14" fill="#244fb0" font-weight="700">name</text><text x="70" y="42" text-anchor="middle" font-family="Consolas,monospace" font-size="16" fill="#e0742b" font-weight="700">"An"</text></g>` },
+  { tag: "Chặng 3", title: "Rắc rối ở cửa hàng", text: "An giao cho Pi việc tính tiền: nhập giá hai món, in ra tổng. An gõ <b>12</b> và <b>8</b>, nhưng Pi lại báo tổng là… <b>128</b>! Hóa ra <code>input()</code> luôn trả về <b>xâu kí tự</b>, và dấu <code>+</code> giữa hai xâu chỉ <b>ghép</b> chúng lại.",
+    svg: () => BG + svgKid(200, 362, 1.3, "wow") + svgRobot(560, 360, 1.25, "confused", "12+8=?") +
+      `<g transform="translate(300 60)"><rect width="200" height="120" rx="14" fill="#1a2040"/><text x="100" y="40" text-anchor="middle" font-family="Consolas,monospace" font-size="22" fill="#e0742b" font-weight="700">"12" + "8"</text><text x="100" y="72" text-anchor="middle" font-size="22" fill="#9aa3c7">=</text><text x="100" y="105" text-anchor="middle" font-family="Consolas,monospace" font-size="30" fill="#ff8a8a" font-weight="700">"128" ?!</text></g>` +
+      `<text x="140" y="120" font-size="44">🤔</text><text x="660" y="110" font-size="40">❓</text>` },
+  { tag: "Chặng 4", title: "Mỗi giá trị đeo một chiếc thẻ", text: "Thầy giáo giải thích: trong Python, mọi giá trị đều có <b>kiểu dữ liệu</b>, giống như đeo một chiếc thẻ tên: <code>int</code>, <code>float</code>, <code>str</code>, <code>bool</code>. Lệnh <code>type()</code> là chiếc kính lúp để đọc thẻ đó.",
+    svg: () => BG + [["12", "int", "#2f7de1"], ["1.8", "float", "#8b5cf6"], ['"12"', "str", "#e0742b"], ["True", "bool", "#1f9d55"]].map((v, i) =>
+      `<g transform="translate(${70 + i * 175} 120)"><rect width="140" height="110" rx="16" fill="#fff" stroke="${v[2]}" stroke-width="3"/><text x="70" y="62" text-anchor="middle" font-family="Consolas,monospace" font-size="30" font-weight="700" fill="#1f2540">${v[0]}</text><rect x="30" y="122" width="80" height="30" rx="15" fill="${v[2]}"/><text x="70" y="143" text-anchor="middle" font-family="Consolas,monospace" font-size="17" font-weight="700" fill="#fff">${v[1]}</text><line x1="70" y1="110" x2="70" y2="122" stroke="${v[2]}" stroke-width="3"/></g>`).join("") +
+      `<g transform="translate(400 330)"><circle r="34" fill="#fff" stroke="#56608f" stroke-width="8" opacity=".9"/><line x1="24" y1="24" x2="56" y2="56" stroke="#56608f" stroke-width="12" stroke-linecap="round"/><text y="7" text-anchor="middle" font-family="Consolas,monospace" font-size="15" font-weight="700" fill="#244fb0">type()</text></g>` },
+  { tag: "Chặng 5", title: "Máy phiên dịch kiểu dữ liệu", text: "Để Pi tính đúng, An cần “phiên dịch” xâu thành số. Python có ba máy phiên dịch mang đúng tên kiểu: <code>int()</code>, <code>float()</code>, <code>str()</code>. Đưa xâu <code>\"12\"</code> vào máy <code>int()</code>, ta nhận được số nguyên <code>12</code>.",
+    svg: () => BG + `<g transform="translate(70 170)"><rect width="150" height="80" rx="14" fill="#fff" stroke="#e0742b" stroke-width="3"/><text x="75" y="52" text-anchor="middle" font-family="Consolas,monospace" font-size="32" font-weight="700" fill="#e0742b">"12"</text></g>
+      <path d="M232 210 h70" stroke="#56608f" stroke-width="6" marker-end="url(#ah)"/>
+      <defs><marker id="ah" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#56608f"/></marker></defs>
+      <g transform="translate(315 120)"><rect width="170" height="180" rx="20" fill="#7f8bbd"/><rect x="18" y="20" width="134" height="60" rx="10" fill="#1a2040"/><text x="85" y="60" text-anchor="middle" font-family="Consolas,monospace" font-size="28" font-weight="700" fill="#ffd43b">int()</text>
+      <g transform="translate(55 125)"><circle r="22" fill="#2e355f"/><g><line x1="0" y1="-17" x2="0" y2="17" stroke="#c9d1ec" stroke-width="4"/><line x1="-17" y1="0" x2="17" y2="0" stroke="#c9d1ec" stroke-width="4"/><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="3s" repeatCount="indefinite"/></g></g>
+      <g transform="translate(115 125)"><circle r="22" fill="#2e355f"/><g><line x1="0" y1="-17" x2="0" y2="17" stroke="#c9d1ec" stroke-width="4"/><line x1="-17" y1="0" x2="17" y2="0" stroke="#c9d1ec" stroke-width="4"/><animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="3s" repeatCount="indefinite"/></g></g></g>
+      <path d="M498 210 h70" stroke="#56608f" stroke-width="6" marker-end="url(#ah)"/>
+      <g transform="translate(580 170)"><rect width="150" height="80" rx="14" fill="#fff" stroke="#2f7de1" stroke-width="3"/><text x="75" y="52" text-anchor="middle" font-family="Consolas,monospace" font-size="34" font-weight="700" fill="#2f7de1">12</text></g>
+      <text x="145" y="290" text-anchor="middle" font-size="16" fill="#5d6584">xâu kí tự (str)</text><text x="655" y="290" text-anchor="middle" font-size="16" fill="#5d6584">số nguyên (int)</text>` },
+  { tag: "Đến lượt em", title: "Pi đã tính đúng!", text: "An sửa chương trình: <code>a = int(input())</code>. Lần này 12 + 8 ra đúng <b>20</b>. Bí quyết gồm ba bước: <b>nhập</b> bằng <code>input()</code> → <b>đổi kiểu</b> khi cần tính toán → <b>in</b> bằng <code>print()</code>. Giờ thì cùng học kĩ từng lệnh nhé!",
+    svg: () => BG + svgKid(200, 362, 1.3, "happy") + svgRobot(580, 360, 1.25, "happy", "12+8=20") +
+      `<g transform="translate(300 50)"><rect width="200" height="130" rx="14" fill="#1a2040"/><text x="18" y="34" font-family="Consolas,monospace" font-size="13" fill="#e6e9f5">a = <tspan fill="#8be9fd">int</tspan>(<tspan fill="#8be9fd">input</tspan>())</text><text x="18" y="58" font-family="Consolas,monospace" font-size="13" fill="#e6e9f5">b = <tspan fill="#8be9fd">int</tspan>(<tspan fill="#8be9fd">input</tspan>())</text><text x="18" y="82" font-family="Consolas,monospace" font-size="13" fill="#e6e9f5"><tspan fill="#8be9fd">print</tspan>(a + b)</text><text x="18" y="114" font-family="Consolas,monospace" font-size="22" fill="#7dffb0" font-weight="700">20 ✔</text></g>` +
+      `<text x="120" y="120" font-size="40">🎉</text><text x="660" y="100" font-size="40">⭐</text>` }
+];
+function initStory() {
+  const box = $("#comic");
+  box.innerHTML = STORY.map((s, k) => `<figure class="panel"><svg viewBox="0 0 800 450" role="img" aria-label="${esc(s.title)}">${s.svg()}</svg>
+    <figcaption><span class="pn">${k + 1}</span><h4>${esc(s.title)}</h4><p>${s.text}</p></figcaption></figure>`).join("");
+  const last = box.lastElementChild;
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { store.set("storyDone", true); updateProgress(); io.disconnect(); } }, { threshold: .5 });
+    io.observe(last);
+  }
+}
+
+/* ============================================================
+   10. TIẾN ĐỘ, MỤC LỤC, NỘP BÀI
+   ============================================================ */
+const SECTIONS = [
+  { id: "chuyen", items: [], label: "Câu chuyện" }, { id: "muctieu", items: [] },
+  { id: "input", items: ["q1", "th1", "th2"] }, { id: "print", items: ["th3"] },
+  { id: "kieu", items: ["q2", "th4"] }, { id: "chuyendoi", items: ["q3", "q4", "th5", "th6"] },
+  { id: "nhapso", items: ["q5", "th7", "th8"] }, { id: "thuchanh", items: ["nv1", "nv2"] },
+  { id: "luyentap", items: ["q6", "q7"] }, { id: "vandung", items: ["vd1", "vd2"] }, { id: "nopbai", items: [] }
+];
+const isDone = id => EX[id] ? !!(exState[id] && exState[id].pass) : !!(qState[id] && qState[id].pass);
+const ALL_EX = Object.keys(EX), ALL_Q = Object.keys(QUIZ);
+const visited = new Set(store.get("visited", []));
+function updateProgress() {
+  const items = [...ALL_EX, ...ALL_Q];
+  const xp = ALL_EX.filter(isDone).length * 10 + ALL_Q.filter(isDone).length * 5 + (store.get("storyDone", false) ? 5 : 0);
+  const total = ALL_EX.length * 10 + ALL_Q.length * 5 + 5;
+  $("#progressBar").style.width = Math.round(xp / total * 100) + "%"; $("#progressText").textContent = xp + " XP";
+  const lv = xp >= total ? "🏆 Bậc thầy" : xp >= 110 ? "Kĩ sư" : xp >= 60 ? "Thợ code" : xp >= 20 ? "Học việc" : "Tập sự";
+  $("#lvl").textContent = lv; window.__lvl = lv;
+  SECTIONS.forEach(s => {
+    const a = $(`.stations a[data-sec="${s.id}"]`); if (!a) return;
+    let d;
+    if (s.id === "chuyen") d = store.get("storyDone", false);
+    else if (s.items.length) d = s.items.every(isDone);
+    else d = visited.has(s.id);
+    a.classList.toggle("done", !!d);
+  });
+  renderSummary();
+}
+function renderSummary() {
+  const exOk = ALL_EX.filter(isDone).length, qOk = ALL_Q.filter(isDone).length;
+  $("#summary").innerHTML = `<div class="stat">Thử thách hoàn thành<b>${exOk}/${ALL_EX.length}</b></div><div class="stat">Câu hỏi trả lời đúng<b>${qOk}/${ALL_Q.length}</b></div><div class="stat">Điểm kinh nghiệm<b>${$("#progressText").textContent}</b></div><div class="stat">Cấp độ<b>${window.__lvl || ""}</b></div>`;
+  $("#sumList").innerHTML = ALL_EX.map(id => `<li class="${isDone(id) ? "ok" : ""}">${isDone(id) ? "✅" : "⬜"} ${EX[id].title}</li>`).join("");
+}
+function buildReport() {
+  const name = $("#fName").value.trim() || "(chưa nhập)", cls = $("#fClass").value.trim() || "(chưa nhập)";
+  const L = [];
+  L.push("PHIẾU KẾT QUẢ - BÀI 18: CÁC LỆNH VÀO RA ĐƠN GIẢN (Tin học 10)");
+  L.push(`Họ và tên: ${name}    Lớp: ${cls}`);
+  L.push(`Thời gian: ${new Date().toLocaleString("vi-VN")}`);
+  L.push(`Thử thách code hoàn thành: ${ALL_EX.filter(isDone).length}/${ALL_EX.length}    Câu hỏi đúng: ${ALL_Q.filter(isDone).length}/${ALL_Q.length}    Điểm: ${$("#progressText").textContent} (${window.__lvl || ""})`);
+  L.push("");
+  L.push("CÂU HỎI:");
+  ALL_Q.forEach(id => L.push(`  [${isDone(id) ? "Đúng" : (qState[id] && qState[id].tried ? "Sai" : "Chưa làm")}] ${QUIZ[id].title}`));
+  L.push("");
+  L.push("BÀI CODE:");
+  ALL_EX.forEach(id => {
+    L.push(`--- ${EX[id].title} [${isDone(id) ? "ĐẠT" : "CHƯA ĐẠT"}]`);
+    const c = store.get("code:" + id, EX[id].starter);
+    L.push((c && c.trim()) ? c.replace(/\s+$/, "") : "(chưa làm)");
+    L.push("");
+  });
+  return L.join("\n");
+}
+function sheetPayload() {
+  const strip = h => String(h).replace(/<[^>]+>/g, "");
+  const code = ALL_EX.map(id => {
+    const c = store.get("code:" + id, EX[id].starter);
+    return `### ${strip(EX[id].title)} [${isDone(id) ? "ĐẠT" : "CHƯA"}]\n${(c && c.trim()) ? c.replace(/\s+$/, "") : "(chưa làm)"}`;
+  }).join("\n\n");
+  return {
+    lesson: "Bai18", name: $("#fName").value.trim(), cls: $("#fClass").value.trim(),
+    xp: parseInt($("#progressText").textContent, 10) || 0, level: window.__lvl || "",
+    exDone: `${ALL_EX.filter(isDone).length}/${ALL_EX.length}`, qDone: `${ALL_Q.filter(isDone).length}/${ALL_Q.length}`,
+    exNames: ALL_EX.map(id => strip(EX[id].title).split(" · ")[0]), exStatus: ALL_EX.map(id => isDone(id) ? "Đạt" : "Chưa"),
+    qNames: ALL_Q.map((id, i) => "Câu hỏi " + (i + 1)), qStatus: ALL_Q.map(id => isDone(id) ? "Đúng" : (qState[id] && qState[id].tried ? "Sai" : "Chưa làm")),
+    code
+  };
+}
+async function sendToSheet(show, btn) {
+  const url = SHEET_URL || new URLSearchParams(location.search).get("sheet") || "";
+  if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) { show("Thầy cô chưa cài đặt địa chỉ nhận bài. Em hãy dùng nút Sao chép hoặc Tải phiếu kết quả để gửi nhé.", "bad"); return; }
+  const data = sheetPayload();
+  if (!data.name || !data.cls) { show("Em cần điền đủ Họ và tên và Lớp ở phía trên trước khi nộp.", "bad"); (data.name ? $("#fClass") : $("#fName")).focus(); return; }
+  btn.disabled = true; const old = btn.textContent; btn.textContent = "⏳ Đang gửi…";
+  const body = JSON.stringify(data);
+  try {
+    const r = await fetch(url, { method: "POST", body });
+    let j = null; try { j = await r.json(); } catch (e) {}
+    if (j && j.ok) show(`✅ Đã nộp bài thành công lúc ${new Date().toLocaleTimeString("vi-VN")}. Thầy cô đã nhận được kết quả của em (lần nộp thứ ${j.count || 1}).`, "ok");
+    else show("Máy chủ nhận bài báo lỗi" + (j && j.error ? `: ${j.error}` : "") + ". Em thử lại hoặc dùng nút Tải phiếu kết quả.", "bad");
+  } catch (e) {
+    try { await fetch(url, { method: "POST", mode: "no-cors", body }); show("📨 Đã gửi bài đi nhưng không nhận được xác nhận. Em báo thầy cô kiểm tra bảng điểm; nếu chưa thấy thì dùng nút Tải phiếu kết quả.", "neutral"); }
+    catch (e2) { show("Không gửi được bài, có thể do mất mạng. Em kiểm tra kết nối rồi thử lại, hoặc dùng nút Tải phiếu kết quả.", "bad"); }
+  } finally { btn.disabled = false; btn.textContent = old; }
+}
+function initSubmit() {
+  const msg = $("#submitMsg");
+  const show = (t, cls) => { msg.hidden = false; msg.className = "result " + cls; msg.textContent = t; };
+  $("#btnSheet").onclick = e => sendToSheet(show, e.currentTarget);
+  $("#btnCopy").onclick = async () => {
+    const t = buildReport();
+    try { await navigator.clipboard.writeText(t); show("✅ Đã sao chép phiếu kết quả. Em dán (Ctrl+V) vào tin nhắn gửi thầy cô nhé.", "ok"); }
+    catch (e) { const ta = el("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); show("✅ Đã sao chép phiếu kết quả.", "ok"); } catch (e2) { show("Không sao chép được, em hãy dùng nút Tải phiếu kết quả.", "bad"); } ta.remove(); }
+  };
+  $("#btnDownload").onclick = () => {
+    const name = ($("#fName").value.trim() || "hoc_sinh").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").replace(/[^\w]+/g, "_");
+    const blob = new Blob(["﻿" + buildReport()], { type: "text/plain;charset=utf-8" });
+    const a = el("a", { href: URL.createObjectURL(blob), download: `Bai18_${($("#fClass").value.trim() || "lop").replace(/[^\w]+/g, "")}_${name}.txt` });
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    show("✅ Đã tải phiếu kết quả về máy.", "ok");
+  };
+  let armed = false;
+  $("#btnReset").onclick = e => {
+    const b = e.currentTarget;
+    if (!armed) { armed = true; b.textContent = "⚠ Bấm lần nữa để xóa toàn bộ tiến độ"; setTimeout(() => { armed = false; b.textContent = "↺ Xóa tiến độ, làm lại"; }, 3000); return; }
+    const n = $("#fName").value, c = $("#fClass").value;
+    store.clear(); store.set("name", n); store.set("class", c); location.reload();
+  };
+}
+function initInfo() {
+  const n = $("#fName"), c = $("#fClass"), who = $("#whoLabel");
+  n.value = store.get("name", ""); c.value = store.get("class", "");
+  const upd = () => { store.set("name", n.value); store.set("class", c.value); who.textContent = n.value.trim() ? `${n.value.trim()}${c.value.trim() ? " – lớp " + c.value.trim() : ""}` : "(chưa nhập tên)"; };
+  n.addEventListener("input", upd); c.addEventListener("input", upd); upd();
+}
+function initNav() {
+  const links = new Map($$(".stations a").map(a => [a.dataset.sec, a]));
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        const id = en.target.id;
+        links.forEach(a => a.classList.remove("active"));
+        if (links.has(id)) { const a = links.get(id); a.classList.add("active"); const strip = a.parentElement; strip.scrollTo({ left: a.offsetLeft - strip.clientWidth / 2 + a.clientWidth / 2, behavior: "smooth" }); }
+        if (!visited.has(id)) { visited.add(id); store.set("visited", [...visited]); updateProgress(); }
+      }
+    });
+  }, { rootMargin: "-45% 0px -50% 0px" });
+  SECTIONS.forEach(s => { const sec = document.getElementById(s.id); if (sec) obs.observe(sec); });
+}
+
+function initTheme() {
+  const btn = $("#themeBtn"), root = document.documentElement;
+  const cur = () => root.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const paint = () => { btn.textContent = cur() === "dark" ? "☀️" : "🌙"; };
+  if (!root.getAttribute("data-theme")) root.setAttribute("data-theme", cur());
+  btn.onclick = () => { const t = cur() === "dark" ? "light" : "dark"; root.setAttribute("data-theme", t); store.set("theme", t); paint(); };
+  paint();
+}
+function initReveal() {
+  const els = $$("main > .card");
+  if (!("IntersectionObserver" in window)) return;
+  els.forEach(e => e.classList.add("reveal"));
+  const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } }), { rootMargin: "0px 0px -8% 0px" });
+  els.forEach(e => io.observe(e));
+}
+
+/* ============================================================
+   KHỞI ĐỘNG
+   ============================================================ */
+document.addEventListener("DOMContentLoaded", () => {
+  initTheme(); initReveal(); initInfo(); initStory(); renderQuizzes(); renderPractice(); initDemos(); initShells();
+  initTracer(); initGame(); initSubmit(); initNav();
+  setTimeout(() => { highlightStatic(); updateProgress(); }, 0);
+  if (!hasCM()) console.warn("CodeMirror không tải được, dùng ô soạn thảo đơn giản.");
+  // tải sẵn Python khi trang đã rảnh để lần chạy đầu nhanh hơn
+  const warm = () => loadPy().then(() => { window.__pyReady = true; }).catch(() => {});
+  if ("requestIdleCallback" in window) requestIdleCallback(() => setTimeout(warm, 1500)); else setTimeout(warm, 2500);
+});
+</script>
+</body>
+</html>
